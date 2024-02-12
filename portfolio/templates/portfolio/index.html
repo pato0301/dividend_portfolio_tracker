@@ -1,0 +1,33 @@
+{% extends "portfolio/layout.html"%}
+
+{% block body %}
+    <h1>My Portfolio</h1>
+    <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Name</th>
+            <th># of stocks</th>
+            <th>Average price</th>
+            <th>Industry</th>
+            <th># of stocks for next div payment</th>
+            <th>Next div payment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stock in stocks %}
+            <tr>
+              <td>{{ stock.ticker }}</td>
+              <td>{{ stock.name }}</td>
+              <td>{{ stock.n_stock }}</td>
+              <td>{{ stock.avg_price }}</td>
+              <td>{{ stock.industry }}</td>
+              <td>{{ stock.n_stock_next_exdiv_payment }}</td>
+              <td>{{ stock.next_exdiv_payment }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'portfolio:buy_stock' %}">Buy stock</a>
+    <a href="{% url 'portfolio:sell_stock' %}">Sell stock</a>
+{% endblock %}

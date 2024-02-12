@@ -1,0 +1,12 @@
+div-tracker-env
+*.pyc
+__pycache__/
+.env
+db.sqlite3
+/static/
+/media/
+# IDE-specific files
+.vscode/
+.idea/
+.vs/
+superuser.txt
