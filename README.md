@@ -37,5 +37,6 @@ Contributions to Dividend Portfolio Tracker are welcome! To contribute to the pr
 2. Make your changes
 3. Submit a pull request
 
+## License
 
-
+This project is licensed under the [MIT License](LICENSE) - see the [LICENSE](LICENSE) file for details.
