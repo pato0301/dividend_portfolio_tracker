@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django import forms
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -20,12 +21,21 @@ class StockForm(forms.Form):
     )
 
 # Create your views here.
+@login_required
 def index(request):
+    # if not request.user.is_authenticated:
+    #     return HttpResponseRedirect(reverse("users:login"))
+
     return render(request, "portfolio/index.html", {
         "stocks" : Portfolio.objects.all()
     })
 
+
+@login_required
 def buy_stock(request):
+    # if not request.user.is_authenticated:
+    #     return HttpResponseRedirect(reverse("users:login"))
+
     if request.method == "POST":
         form = StockForm(request.POST)
         if form.is_valid():
@@ -98,7 +108,12 @@ def buy_stock(request):
         "form": StockForm()
     })
 
+
+@login_required
 def sell_stock(request):
+    # if not request.user.is_authenticated:
+    #     return HttpResponseRedirect(reverse("users:login"))
+
     if request.method == "POST":
         form = StockForm(request.POST)
         if form.is_valid():

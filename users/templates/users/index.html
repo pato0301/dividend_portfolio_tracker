@@ -1,0 +1,10 @@
+{% extends "portfolio/layout.html"%}
+
+{% block body %}
+    <h1>Index</h1>
+    <ul>
+        <li>Username: {{ request.user.username }}</li>
+        <li>Email: {{ request.user.email }}</li>
+    </ul>
+    <a href="{% url 'users:logout' %}">Log out</a>
+{% endblock %}
