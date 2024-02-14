@@ -1,0 +1,17 @@
+{% extends "portfolio/layout.html"%}
+
+{% block body %}
+    <h1>Login</h1>
+
+    {% if message %}
+        <div>{{ message }}</div>
+    {% endif %}
+
+    <form  action="{% url 'users:login' %}" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit">
+    </form>
+
+    <a href="{% url 'users:signup' %}">Not registered? Sign Up</a>
+{% endblock %}
