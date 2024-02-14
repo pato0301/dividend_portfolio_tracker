@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django import forms
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -50,7 +51,8 @@ def signup_view(request):
         email = request.POST["email"].lower()
         print("email: ", email)
         password = request.POST["password"]  
-        user = User.objects.create_user(email, email, password)
+        User = get_user_model()
+        user = User.objects.create_user(email=email, password=password)
         user.save()
         if user is not None:
             login(request, user)
