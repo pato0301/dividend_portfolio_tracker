@@ -83,6 +83,7 @@ def buy_stock(request):
 
                 # Extract relevant information such as price, name, etc.
                 industry = stock_data.info['sector']
+                ticker_name = stock_data.info['shortName']
                 exDividendDate = stock_data.info['exDividendDate']
                 next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
 
@@ -116,7 +117,7 @@ def buy_stock(request):
                     # Create a new Portfolio entry if it doesn't exist
                     new_stock = Portfolio(
                         ticker=ticker,
-                        name=ticker,
+                        name=ticker_name,
                         n_stock=number_stocks,
                         avg_price=price_stocks,
                         industry=industry,
