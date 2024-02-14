@@ -1,0 +1,2 @@
+django-background-tasks==1.2.5
+Django==4.2.10
