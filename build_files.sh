@@ -8,4 +8,4 @@ python3 manage.py makemigrations --no-input
 python3 manage.py migrate --no-input
 
 echo "Collecting static files..."
-python3 manage.py collectstatic --no-inputs
+python3 manage.py collectstatic --no-input
