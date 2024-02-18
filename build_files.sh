@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+# build_files.sh
 
 echo "Building project packages..."
-python3 -m pip install -r requirements.txt
+pip install -r requirements.txt
 
 echo "Migration databases..."
 python3 manage.py makemigrations --noinput
