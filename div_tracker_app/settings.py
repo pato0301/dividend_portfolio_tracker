@@ -94,7 +94,11 @@ WSGI_APPLICATION = 'div_tracker_app.wsgi.app'
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('ENGINE'),
-        'NAME': os.getenv('NAME')
+        'NAME': os.getenv('POSTGRES_DATABASE_NAME'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST'),
+        'PORT': os.getenv('POSTGRES_PORT'),
     }
 }
 
