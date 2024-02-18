@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     username = models.CharField(max_length=100)
     email = models.EmailField(max_length=254, unique=True)
-    password = models.CharField(max_length=50, default="")
+    password = models.CharField(max_length=250, default="")
 
     # required
     date_joined = models.DateTimeField(auto_now_add=True)
