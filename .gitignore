@@ -11,3 +11,4 @@ db.sqlite3
 .vs/
 superuser.txt
 commands.txt
+.env
