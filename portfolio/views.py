@@ -1,14 +1,16 @@
 from django.contrib.auth.decorators import login_required
 from django import forms
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.contrib import messages
+from django.contrib import messages, auth
 from django.db.models import Avg, F
 from .models import Portfolio, Transaction
+from asgiref.sync import sync_to_async
 
 import yfinance as yf
 from datetime import datetime
+import time
 
 class BuyStockForm(forms.Form):
     ticker = forms.CharField(label="Stock ticker")
@@ -53,7 +55,6 @@ class SellStockForm(forms.Form):
             input_formats=["%Y-%m-%d"]
         )
 
-
 # Create your views here.
 @login_required
 def index(request):
@@ -64,88 +65,107 @@ def index(request):
         "stocks" : Portfolio.objects.all()
     })
 
-
 @login_required
-def buy_stock(request):
-    # if not request.user.is_authenticated:
-    #     return HttpResponseRedirect(reverse("users:login"))
-
-    if request.method == "POST":
-        form = BuyStockForm(request.POST)
-        if form.is_valid():
-            ticker = form.cleaned_data["ticker"]
-            number_stocks = form.cleaned_data["number_stocks"]
-            price_stocks = form.cleaned_data["price_stocks"]
-            buy_date = form.cleaned_data["date"]
-            # Look up the ticker symbol using yfinance
-            try:
-                stock_data = yf.Ticker(ticker)
-
-                # Extract relevant information such as price, name, etc.
-                industry = stock_data.info['sector']
-                exDividendDate = stock_data.info['exDividendDate']
-                next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
-
-                new_stock = Transaction.objects.create(
-                    operation="buy",
-                    ticker=ticker,
-                    operation_date=buy_date,
-                    n_stock=number_stocks,
-                    price=price_stocks,
-                    user_id=request.user
-                )
-
-                # Get the Portfolio entry for the user and ticker, if it exists
-                portfolio_entry = Portfolio.objects.filter(user_id=request.user, ticker=ticker).first()
-
-                if portfolio_entry:
-                    # Update avg_price and n_stock if the entry exists
-                    transactions = Transaction.objects.filter(user_id=request.user, ticker=ticker)
-                    average_price = transactions.aggregate(avg_price=Avg('price'))['avg_price']
-                    
-                    # Update the Portfolio entry
-                    portfolio_entry.avg_price = round(average_price,2)
-                    portfolio_entry.n_stock += number_stocks
-
-                    # Check if buy_date is before next_exdiv_payment
-                    if buy_date < portfolio_entry.next_exdiv_payment:
-                        portfolio_entry.n_stock_next_exdiv_payment += number_stocks
-
-                    portfolio_entry.save()
-                else:
-                    # Create a new Portfolio entry if it doesn't exist
-                    new_stock = Portfolio(
-                        ticker=ticker,
-                        name=ticker,
-                        n_stock=number_stocks,
-                        avg_price=price_stocks,
-                        industry=industry,
-                        next_exdiv_payment=next_exdiv_payment,
-                        user_id=request.user
-                    )
-
-                    if buy_date < next_exdiv_payment.date():
-                        new_stock.n_stock_next_exdiv_payment=number_stocks
-                    else:
-                        new_stock.n_stock_next_exdiv_payment=0
-                    
-                    new_stock.save()
-                
-                # Redirect to the portfolio index page
-                return HttpResponseRedirect(reverse("portfolio:index"))
-            except Exception as e:
-                # Handle any errors, such as invalid ticker symbols
-                form.add_error("ticker", str(e))
-                return render(request, "portfolio/buy_stock.html", {
-                    "form": form
-                })
-        else:
-            return render(request, "portfolio/buy_stock.html", {
-                "form": form
-            })
+def load_buy_stock(request):
     return render(request, "portfolio/buy_stock.html", {
         "form": BuyStockForm()
     })
+
+async def buy_stock(request):
+    start_time = time.time()
+    # if not await sync_to_async(request.user.is_authenticated):
+    is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
+    if not is_authenticated:
+        print("Here")
+        return HttpResponseRedirect(reverse("users:login"))
+    else:
+        # end_time = time.time()
+        # execution_time = end_time - start_time
+        # print(f"Execution time: {execution_time} seconds")
+        # return HttpResponse("ok")
+        if request.method == "POST":
+            user = await sync_to_async(lambda: request.user)()
+            print("user: ", user)
+            form = BuyStockForm(request.POST)
+            if form.is_valid():
+                ticker = form.cleaned_data["ticker"]
+                number_stocks = form.cleaned_data["number_stocks"]
+                price_stocks = form.cleaned_data["price_stocks"]
+                buy_date = form.cleaned_data["date"]
+                print(ticker, number_stocks, price_stocks, buy_date)
+                try:
+                    stock_data = yf.Ticker(ticker)
+                    # Extract relevant information such as price, name, etc.
+                    industry = stock_data.info['sector']
+                    stock_name = stock_data.info['shortName']
+                    exDividendDate = stock_data.info['exDividendDate']
+                    next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
+
+                    print(industry, next_exdiv_payment)
+                    new_stock = await Transaction.objects.acreate(
+                        operation="buy",
+                        ticker=ticker,
+                        operation_date=buy_date,
+                        n_stock=number_stocks,
+                        price=price_stocks,
+                        user_id=user
+                    )
+
+                    # Get the Portfolio entry for the user and ticker, if it exists
+                    portfolio_entry = await Portfolio.objects.filter(user_id=user, ticker=ticker).afirst()
+                    print("got portfolio_entry")
+                    print(portfolio_entry)
+                    mid_time = time.time()
+                    execution_mid_time = mid_time - start_time
+                    print(f"Mid execution time: {execution_mid_time} seconds")
+                    print(True if portfolio_entry else False)
+                    if portfolio_entry:
+                        # Update avg_price and n_stock if the entry exists
+                        transactions = Transaction.objects.filter(user_id=user, ticker=ticker)
+                        print("got transactions")
+                        average_price = await sync_to_async(lambda: transactions.aggregate(avg_price=Avg('price'))['avg_price'])()
+                        print("got average_price")
+                        
+                        # Update the Portfolio entry
+                        portfolio_entry.avg_price = round(average_price,2)
+                        portfolio_entry.n_stock += number_stocks
+
+                        # Check if buy_date is before next_exdiv_payment
+                        if buy_date < portfolio_entry.next_exdiv_payment:
+                            portfolio_entry.n_stock_next_exdiv_payment += number_stocks
+
+                        await sync_to_async(portfolio_entry.save)()
+                        print("portfolio_entry saved")
+                    
+                    else:
+                        # Create a new Portfolio entry if it doesn't exist
+                        print(industry, next_exdiv_payment)
+                        new_stock = await Portfolio.objects.acreate(
+                            ticker=ticker,
+                            name=stock_name,
+                            n_stock=number_stocks,
+                            avg_price=price_stocks,
+                            industry=industry,
+                            n_stock_next_exdiv_payment=number_stocks if buy_date < next_exdiv_payment.date() else 0,
+                            next_exdiv_payment=next_exdiv_payment,
+                            user_id=user
+                        )
+                        second_mid_time = time.time()
+                        execution_second_mid_time = mid_time - start_time
+                        print(f"Mid Second execution time: {execution_second_mid_time} seconds")
+                    
+                    # Redirect to the portfolio index page
+                    return HttpResponseRedirect(reverse("portfolio:index"))
+                except Exception as e:
+                    # Handle any errors, such as invalid ticker symbols
+                    form.add_error("ticker", str(e))
+                    return render(request, "portfolio/buy_stock.html", {
+                        "form": form
+                    })                    
+                end_time = time.time()
+                execution_time = end_time - start_time
+                print(f"Execution time: {execution_time} seconds")
+                return HttpResponse("ok")
 
 
 @login_required

@@ -2,7 +2,7 @@
 
 {% block body %}
     <h1>Buy stock</h1>
-    <form  action="{% url 'portfolio:buy_stock' %}" method="post">
+    <form  action="{% url 'portfolio:save_buy_stock' %}" method="post">
         {% csrf_token %}
         {{ form }}
         <input type="submit">
