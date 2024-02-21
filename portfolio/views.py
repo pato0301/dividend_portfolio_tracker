@@ -179,7 +179,7 @@ async def save_buy_stock(request):
                 # return HttpResponse("ok")
 
 @login_required
-def sync_load_sell_stock(request):
+def load_sell_stock(request):
     return render(request, "portfolio/sell_stock.html", {
         "form": SellStockForm(user=request.user)
     })
