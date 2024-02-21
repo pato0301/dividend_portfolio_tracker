@@ -60,9 +60,6 @@ class SellStockForm(forms.Form):
 # Create your views here.
 @login_required
 def index(request):
-    # if not request.user.is_authenticated:
-    #     return HttpResponseRedirect(reverse("users:login"))
-
     return render(request, "portfolio/index.html", {
         "stocks" : Portfolio.objects.all()
     })
@@ -81,10 +78,6 @@ async def save_buy_stock(request):
         print("Here")
         return HttpResponseRedirect(reverse("users:login"))
     else:
-        # end_time = time.time()
-        # execution_time = end_time - start_time
-        # print(f"Execution time: {execution_time} seconds")
-        # return HttpResponse("ok")
         if request.method == "POST":
             user = await sync_to_async(lambda: request.user)()
             print("user: ", user)
@@ -173,10 +166,7 @@ async def save_buy_stock(request):
             return render(request, "portfolio/buy_stock.html", {
                 "form": BuyStockForm()
             })                   
-                # end_time = time.time()
-                # execution_time = end_time - start_time
-                # print(f"Execution time: {execution_time} seconds")
-                # return HttpResponse("ok")
+
 
 @login_required
 def load_sell_stock(request):
@@ -185,8 +175,6 @@ def load_sell_stock(request):
     })
 
 async def save_sell_stock(request):
-    start_time = time.time()
-    # if not await sync_to_async(request.user.is_authenticated):
     is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
     if not is_authenticated:
         print("Here")
