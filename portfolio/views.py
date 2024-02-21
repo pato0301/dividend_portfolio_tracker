@@ -7,6 +7,7 @@ from django.contrib import messages, auth
 from django.db.models import Avg, F
 from .models import Portfolio, Transaction
 from asgiref.sync import sync_to_async
+from django.db.models import Q
 
 import yfinance as yf
 from datetime import datetime
@@ -21,6 +22,7 @@ class BuyStockForm(forms.Form):
         widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
         input_formats=["%Y-%m-%d"]
     )
+
 
 class SellStockForm(forms.Form):
 
@@ -176,9 +178,8 @@ async def save_buy_stock(request):
                 # print(f"Execution time: {execution_time} seconds")
                 # return HttpResponse("ok")
 
-
 @login_required
-def load_sell_stock(request):
+def sync_load_sell_stock(request):
     return render(request, "portfolio/sell_stock.html", {
         "form": SellStockForm(user=request.user)
     })
@@ -222,7 +223,7 @@ async def save_sell_stock(request):
 
                     # Update the Portfolio entry
                     if portfolio_entry.n_stock == number_stocks:
-                        await sync_to_async(portfolio_entry.delete)()
+                        await portfolio_entry.adelete()
                         print("portfolio_entry deleted")
                     else:
                         print("enter else")
@@ -257,3 +258,22 @@ async def save_sell_stock(request):
             return render(request, "portfolio/sell_stock.html", {
                 "form": SellStockForm(user=user)
             })
+
+# Async version of the GET, this goes lower than the sync
+# so Im commenting it out.
+# async def load_sell_stock(request):
+#     start_time = time.time()
+#     is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
+#     if not is_authenticated:
+#         return HttpResponseRedirect(reverse("users:login"))
+#     else:
+#         user = await sync_to_async(lambda: request.user)()
+#         ticker_choices = []
+#         async for stock in Portfolio.objects.filter(user_id=user):
+#             ticker_choices.append((stock.ticker, stock.ticker))
+#         end_time = time.time()
+#         execution_time = end_time - start_time
+#         # print(f"Execution time: {execution_time} seconds")
+#         return render(request, "portfolio/sell_stock.html", {
+#             "form": SellStockForm(ticker_choices=ticker_choices)
+#         })
