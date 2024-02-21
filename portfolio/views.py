@@ -71,7 +71,7 @@ def load_buy_stock(request):
         "form": BuyStockForm()
     })
 
-async def buy_stock(request):
+async def save_buy_stock(request):
     start_time = time.time()
     # if not await sync_to_async(request.user.is_authenticated):
     is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
@@ -161,73 +161,99 @@ async def buy_stock(request):
                     form.add_error("ticker", str(e))
                     return render(request, "portfolio/buy_stock.html", {
                         "form": form
-                    })                    
-                end_time = time.time()
-                execution_time = end_time - start_time
-                print(f"Execution time: {execution_time} seconds")
-                return HttpResponse("ok")
+                    })
+            else:
+                return render(request, "portfolio/buy_stock.html", {
+                    "form": form
+                }) 
+        
+        else:
+            return render(request, "portfolio/buy_stock.html", {
+                "form": BuyStockForm()
+            })                   
+                # end_time = time.time()
+                # execution_time = end_time - start_time
+                # print(f"Execution time: {execution_time} seconds")
+                # return HttpResponse("ok")
 
 
 @login_required
-def sell_stock(request):
-    # if not request.user.is_authenticated:
-    #     return HttpResponseRedirect(reverse("users:login"))
-
-    if request.method == "POST":
-        form = SellStockForm(request.POST)
-        if form.is_valid():
-            ticker = form.cleaned_data["ticker"]
-            number_stocks = form.cleaned_data["number_stocks"]
-            price_stocks = form.cleaned_data["price_stocks"]
-            sell_date = form.cleaned_data["date"]
-            # Look up the ticker symbol using yfinance
-            try:
-                # Get the Portfolio entry for the user and ticker, if it exists
-                portfolio_entry = Portfolio.objects.filter(user_id=request.user, ticker=ticker).first()
-
-                if not portfolio_entry:
-                    raise ValueError("Stock not in portfolio")
-
-                sell_stock = Transaction.objects.create(
-                    operation="sell",
-                    ticker=ticker,
-                    operation_date=sell_date,
-                    n_stock=number_stocks,
-                    price=price_stocks,
-                    user_id=request.user
-                )
-
-
-                if portfolio_entry:
-                    # Update the Portfolio entry
-                    if number_stocks > portfolio_entry.n_stock:
-                        raise ValueError("Selling more stocks than in portfolio")
-
-                    elif portfolio_entry.n_stock == number_stocks:
-                        portfolio_entry.delete()
-
-                    else:
-                        portfolio_entry.n_stock -= number_stocks
-
-                        # Check if buy_date is before next_exdiv_payment
-                        if sell_date < portfolio_entry.next_exdiv_payment:
-                            portfolio_entry.n_stock_next_exdiv_payment -= number_stocks
-
-                        portfolio_entry.save()
-                
-                # Redirect to the portfolio index page
-                return HttpResponseRedirect(reverse("portfolio:index"))
-            except Exception as e:
-                # Handle any errors, such as invalid ticker symbols
-                form.add_error("ticker", str(e))
-                messages.error(request, "Error: Stock not in portfolio.")
-                return render(request, "portfolio/sell_stock.html", {
-                    "form": form
-                })
-        else:
-            return render(request, "portfolio/sell_stock.html", {
-                "form": form
-            })
+def load_sell_stock(request):
     return render(request, "portfolio/sell_stock.html", {
         "form": SellStockForm(user=request.user)
     })
+
+async def save_sell_stock(request):
+    start_time = time.time()
+    # if not await sync_to_async(request.user.is_authenticated):
+    is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
+    if not is_authenticated:
+        print("Here")
+        return HttpResponseRedirect(reverse("users:login"))
+    else:
+        user = await sync_to_async(lambda: request.user)()
+        if request.method == "POST":
+            print("user: ", user)
+            form = BuyStockForm(request.POST)
+            if form.is_valid():
+                ticker = form.cleaned_data["ticker"]
+                number_stocks = form.cleaned_data["number_stocks"]
+                price_stocks = form.cleaned_data["price_stocks"]
+                sell_date = form.cleaned_data["date"]
+                print(ticker, number_stocks, price_stocks, sell_date)
+                try:
+                    # Get the Portfolio entry for the user and ticker, if it exists
+                    portfolio_entry = await Portfolio.objects.filter(user_id=user, ticker=ticker).afirst()
+                    print("got portfolio_entry")
+                    if not portfolio_entry:
+                        raise ValueError("Stock not in portfolio")
+
+                    if number_stocks > portfolio_entry.n_stock:
+                        raise ValueError("Selling more stocks than in portfolio")
+
+                    sell_stock = await Transaction.objects.acreate(
+                        operation="sell",
+                        ticker=ticker,
+                        operation_date=sell_date,
+                        n_stock=number_stocks,
+                        price=price_stocks,
+                        user_id=user
+                    )
+
+                    # Update the Portfolio entry
+                    if portfolio_entry.n_stock == number_stocks:
+                        await sync_to_async(portfolio_entry.delete)()
+                        print("portfolio_entry deleted")
+                    else:
+                        print("enter else")
+                        portfolio_entry.n_stock -= number_stocks
+                        print("reduce n_stock")
+
+                        # Check if sell_date is before next_exdiv_payment
+                        if sell_date < portfolio_entry.next_exdiv_payment:
+                            print("reduce n_stock_next_exdiv_payment")
+                            portfolio_entry.n_stock_next_exdiv_payment -= number_stocks
+
+                        await sync_to_async(portfolio_entry.save)()
+                        print("portfolio_entry saved")
+
+                    # Redirect to the portfolio index page
+                    mid_time = time.time()
+                    execution_mid_time = mid_time - start_time
+                    print(f"Mid execution time: {execution_mid_time} seconds")
+                    return HttpResponseRedirect(reverse("portfolio:index"))
+                except Exception as e:
+                    # Handle any errors, such as invalid ticker symbols
+                    form.add_error("ticker", str(e))
+                    messages.error(request, "Error: Stock not in portfolio.")
+                    return render(request, "portfolio/sell_stock.html", {
+                        "form": form
+                    })
+            else:
+                return render(request, "portfolio/sell_stock.html", {
+                    "form": form
+                }) 
+        else:
+            return render(request, "portfolio/sell_stock.html", {
+                "form": SellStockForm(user=user)
+            })
