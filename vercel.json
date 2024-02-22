@@ -23,5 +23,11 @@
             "src": "/(.*)",
             "dest": "div_tracker_app/wsgi.py"
         }
+    ],
+    "crons": [
+        {
+          "path": "portfolio/cron_jobs/process_dividend_payments.py",
+          "schedule": "*/1 * * * *"
+        }
     ]
 }
