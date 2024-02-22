@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib import messages, auth
 from django.db.models import Avg, F
-from .models import Portfolio, Transaction
+from .models import Portfolio, Transaction, DividendPayment
 from asgiref.sync import sync_to_async
 from django.db.models import Q
 
@@ -57,6 +57,51 @@ class SellStockForm(forms.Form):
             input_formats=["%Y-%m-%d"]
         )
 
+def test_cron_sync(request):
+    # Get today's date
+    today = datetime.today()
+
+    # Filter Portfolio records with next_exdiv_payment = today
+    portfolios =  Portfolio.objects.filter(next_exdiv_payment=today)
+
+    # Get unique list of tickers
+    unique_tickers = portfolios.values_list('ticker', flat=True).distinct()
+
+    for ticker in unique_tickers:
+        stock_data = yf.Ticker(ticker)
+        last_dividend_value = stock_data.info["lastDividendValue"]
+        exDividendDate = stock_data.info['exDividendDate']
+        next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
+        next_exdiv_payment_date = datetime.fromtimestamp(exDividendDate).date()
+
+        # Filter Portfolio records for the ticker
+        portfolios_for_ticker =  portfolios.filter(ticker=ticker)
+
+        # Iterate over portfolios for the ticker and save DividendPayment records
+        for portfolio in portfolios_for_ticker:
+            # Create DividendPayment record
+            dividend_payment = DividendPayment.objects.create(
+                ticker=ticker,
+                payment_date=today,
+                amount=last_dividend_value,
+                n_stock=portfolio.n_stock_next_exdiv_payment,
+                user_id=portfolio.user_id
+            )
+
+            # Check if n_stock = 0, then delete the record
+            if portfolio.n_stock == 0:
+                portfolio.delete()
+            else:
+                # Update n_stock_next_exdiv_payment = n_stock
+                portfolio.n_stock_next_exdiv_payment = portfolio.n_stock
+
+                # Convert portfolio.next_exdiv_payment to datetime.datetime
+                if portfolio.next_exdiv_payment >= next_exdiv_payment_date:
+                    portfolio.next_exdiv_payment = None
+                else:
+                    portfolio.next_exdiv_payment = next_exdiv_payment
+
+                portfolio.save()
 
 # Create your views here.
 @login_required

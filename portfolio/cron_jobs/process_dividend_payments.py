@@ -17,6 +17,7 @@ def process_dividend_payments():
         last_dividend_value = stock_data.info["lastDividendValue"]
         exDividendDate = stock_data.info['exDividendDate']
         next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
+        next_exdiv_payment_date = datetime.fromtimestamp(exDividendDate).date()
 
         # Filter Portfolio records for the ticker
         portfolios_for_ticker =  portfolios.filter(ticker=ticker)
@@ -38,7 +39,12 @@ def process_dividend_payments():
             else:
                 # Update n_stock_next_exdiv_payment = n_stock
                 portfolio.n_stock_next_exdiv_payment = portfolio.n_stock
-                portfolio.next_exdiv_payment = next_exdiv_payment
+
+                if portfolio.next_exdiv_payment >= next_exdiv_payment_date:
+                    portfolio.next_exdiv_payment = None
+                else:
+                    portfolio.next_exdiv_payment = next_exdiv_payment
+
                 portfolio.save()
 
 
@@ -46,41 +52,46 @@ def process_dividend_payments():
 After running some test the async version is slower
 so I am keeping the sync version for prod.
 """
-async def process_dividend_payments():
-    # Get today's date
-    today = datetime.today()
+# async def process_dividend_payments():
+#     # Get today's date
+#     today = datetime.today()
 
-    # Filter Portfolio records with next_exdiv_payment = today
-    portfolios = await sync_to_async(Portfolio.objects.filter)(next_exdiv_payment=today)
+#     # Filter Portfolio records with next_exdiv_payment = today
+#     portfolios = await sync_to_async(Portfolio.objects.filter)(next_exdiv_payment=today)
 
-    # Get unique list of tickers
-    unique_tickers = await sync_to_async(list)(portfolios.values_list('ticker', flat=True).distinct())
+#     # Get unique list of tickers
+#     unique_tickers = await sync_to_async(list)(portfolios.values_list('ticker', flat=True).distinct())
 
-    for ticker in unique_tickers:
-        stock_data = yf.Ticker(ticker)
-        last_dividend_value = stock_data.info["lastDividendValue"]
-        exDividendDate = stock_data.info['exDividendDate']
-        next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
+#     for ticker in unique_tickers:
+#         stock_data = yf.Ticker(ticker)
+#         last_dividend_value = stock_data.info["lastDividendValue"]
+#         exDividendDate = stock_data.info['exDividendDate']
+#         next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
 
-        # Filter Portfolio records for the ticker
-        portfolios_for_ticker = await sync_to_async(list)(portfolios.filter(ticker=ticker))
+#         # Filter Portfolio records for the ticker
+#         portfolios_for_ticker = await sync_to_async(list)(portfolios.filter(ticker=ticker))
 
-        # Iterate over portfolios for the ticker and save DividendPayment records
-        for portfolio in portfolios_for_ticker:
-            # Create DividendPayment record
-            dividend_payment = await DividendPayment.objects.acreate(
-                ticker=ticker,
-                payment_date=today,
-                amount=last_dividend_value,
-                n_stock=portfolio.n_stock_next_exdiv_payment,
-                user_id=portfolio.user_id
-            )
+#         # Iterate over portfolios for the ticker and save DividendPayment records
+#         for portfolio in portfolios_for_ticker:
+#             # Create DividendPayment record
+#             dividend_payment = await DividendPayment.objects.acreate(
+#                 ticker=ticker,
+#                 payment_date=today,
+#                 amount=last_dividend_value,
+#                 n_stock=portfolio.n_stock_next_exdiv_payment,
+#                 user_id=portfolio.user_id
+#             )
 
-            # Check if n_stock = 0, then delete the record
-            if portfolio.n_stock == 0:
-                await portfolio.adelete()
-            else:
-                # Update n_stock_next_exdiv_payment = n_stock
-                portfolio.n_stock_next_exdiv_payment = portfolio.n_stock
-                portfolio.next_exdiv_payment = next_exdiv_payment
-                await sync_to_async(portfolio.save)()
+#             # Check if n_stock = 0, then delete the record
+#             if portfolio.n_stock == 0:
+#                 await portfolio.adelete()
+#             else:
+#                 # Update n_stock_next_exdiv_payment = n_stock
+#                 portfolio.n_stock_next_exdiv_payment = portfolio.n_stock
+
+#                 if portfolio.next_exdiv_payment >= next_exdiv_payment:
+#                     portfolio.next_exdiv_payment = None
+#                 else:
+#                     portfolio.next_exdiv_payment = next_exdiv_payment
+
+#                 await sync_to_async(portfolio.save)()
