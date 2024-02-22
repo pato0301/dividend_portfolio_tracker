@@ -23,11 +23,5 @@
             "src": "/(.*)",
             "dest": "div_tracker_app/wsgi.py"
         }
-    ],
-    "crons": [
-        {
-          "path": "/api/process_dividend_payments",
-          "schedule": "*/1 * * * *"
-        }
     ]
 }
