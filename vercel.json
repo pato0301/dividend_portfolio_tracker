@@ -26,7 +26,7 @@
     ],
     "crons": [
         {
-          "path": "/portfolio/cron_jobs/process_dividend_payments",
+          "path": "portfolio/cron_jobs/process_dividend_payments",
           "schedule": "*/1 * * * *"
         }
     ]
