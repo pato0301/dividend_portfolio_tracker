@@ -1,0 +1,29 @@
+{% extends "portfolio/layout.html"%}
+
+
+{% block body %}
+    <h1>My Dividend Logs</h1>
+    <p>{{ min_div_date }}</p>
+    <table>
+        <thead>
+          <tr>
+            <th>Year/Month</th>
+            {% for stock in stocks %}
+              <th>{{ stock.ticker }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for date_ticker in date_ticket_list %}
+          <tr>
+              {% for ticker in date_ticker %}
+                <td>{{ ticker }}</td>
+              {% endfor %} 
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'portfolio:index' %}">Home</a>
+    <br>
+    <a href="{% url 'users:logout' %}">Log out</a>
+{% endblock %}
