@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Exit on error
+set -o errexit
+
 echo "Building project packages..."
 pip install -r requirements.txt
 
