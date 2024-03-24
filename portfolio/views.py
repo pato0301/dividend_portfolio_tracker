@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django import forms
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib import messages, auth
@@ -8,6 +8,7 @@ from django.db.models import Avg, Min
 from .models import Portfolio, Transaction, DividendPayment
 from asgiref.sync import sync_to_async
 from django.db.models import Q
+from .cron_jobs.process_dividend_payments import process_dividend_payments
 
 import yfinance as yf
 from datetime import datetime
@@ -63,6 +64,20 @@ def index(request):
     return render(request, "portfolio/index.html", {
         "stocks" : Portfolio.objects.filter(user_id=request.user)
     })
+
+
+def pay_div(request):
+    if request.method != 'GET':
+        # Return a 405 Method Not Allowed response for GET requests
+        return HttpResponseNotAllowed(['GET'])
+
+    # Run the process_dividend_payments function
+    process_dividend_payments(Portfolio, DividendPayment)
+
+    # Return a JSON response
+    return JsonResponse({'message': 'Dividend payments processing started successfully'})
+
+        
 
 @login_required
 def load_buy_stock(request):
@@ -298,53 +313,53 @@ def load_dividen_log(request):
         "date_ticket_list" : result
     })
 
-@login_required
-def pay_div(request):
-    # Get today's date
-    today = datetime.today()
+# @login_required
+# def pay_div(request):
+#     # Get today's date
+#     today = datetime.today()
 
-    # Filter Portfolio records with next_exdiv_payment = today
-    portfolios =  Portfolio.objects.filter(next_exdiv_payment=today)
+#     # Filter Portfolio records with next_exdiv_payment = today
+#     portfolios =  Portfolio.objects.filter(next_exdiv_payment=today)
 
-    # Get unique list of tickers
-    unique_tickers = portfolios.values_list('ticker', flat=True).distinct()
+#     # Get unique list of tickers
+#     unique_tickers = portfolios.values_list('ticker', flat=True).distinct()
 
-    for ticker in unique_tickers:
-        stock_data = yf.Ticker(ticker)
-        last_dividend_value = stock_data.info["lastDividendValue"]
-        exDividendDate = stock_data.info['exDividendDate']
-        next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
-        next_exdiv_payment_date = datetime.fromtimestamp(exDividendDate).date()
+#     for ticker in unique_tickers:
+#         stock_data = yf.Ticker(ticker)
+#         last_dividend_value = stock_data.info["lastDividendValue"]
+#         exDividendDate = stock_data.info['exDividendDate']
+#         next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
+#         next_exdiv_payment_date = datetime.fromtimestamp(exDividendDate).date()
 
-        # Filter Portfolio records for the ticker
-        portfolios_for_ticker =  portfolios.filter(ticker=ticker)
+#         # Filter Portfolio records for the ticker
+#         portfolios_for_ticker =  portfolios.filter(ticker=ticker)
 
-        # Iterate over portfolios for the ticker and save DividendPayment records
-        for portfolio in portfolios_for_ticker:
-            # Create DividendPayment record
-            dividend_payment = DividendPayment.objects.create(
-                ticker=ticker,
-                payment_date=today,
-                amount=last_dividend_value,
-                n_stock=portfolio.n_stock_next_exdiv_payment,
-                user_id=portfolio.user_id
-            )
+#         # Iterate over portfolios for the ticker and save DividendPayment records
+#         for portfolio in portfolios_for_ticker:
+#             # Create DividendPayment record
+#             dividend_payment = DividendPayment.objects.create(
+#                 ticker=ticker,
+#                 payment_date=today,
+#                 amount=last_dividend_value,
+#                 n_stock=portfolio.n_stock_next_exdiv_payment,
+#                 user_id=portfolio.user_id
+#             )
 
-            # Check if n_stock = 0, then delete the record
-            if portfolio.n_stock == 0:
-                portfolio.delete()
-            else:
-                # Update n_stock_next_exdiv_payment = n_stock
-                portfolio.n_stock_next_exdiv_payment = portfolio.n_stock
+#             # Check if n_stock = 0, then delete the record
+#             if portfolio.n_stock == 0:
+#                 portfolio.delete()
+#             else:
+#                 # Update n_stock_next_exdiv_payment = n_stock
+#                 portfolio.n_stock_next_exdiv_payment = portfolio.n_stock
 
-                if portfolio.next_exdiv_payment >= next_exdiv_payment_date:
-                    portfolio.next_exdiv_payment = None
-                else:
-                    portfolio.next_exdiv_payment = next_exdiv_payment
+#                 if portfolio.next_exdiv_payment >= next_exdiv_payment_date:
+#                     portfolio.next_exdiv_payment = None
+#                 else:
+#                     portfolio.next_exdiv_payment = next_exdiv_payment
 
-                portfolio.save()
+#                 portfolio.save()
     
-    return HttpResponse("ok")
+#     return HttpResponse("ok")
 
 # Async version of the GET, this goes lower than the sync
 # so Im commenting it out.

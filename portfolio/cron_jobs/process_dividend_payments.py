@@ -1,8 +1,8 @@
 from datetime import datetime
 import yfinance as yf
-from .models import Portfolio, DividendPayment
+#from .models import Portfolio, DividendPayment
 
-def process_dividend_payments():
+def process_dividend_payments(Portfolio, DividendPayment):
     # Get today's date
     today = datetime.today()
 
