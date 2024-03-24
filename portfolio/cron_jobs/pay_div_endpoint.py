@@ -1,11 +1,15 @@
 import requests
+import os
 
 def main():
     # Define the endpoint URL
-    url = 'https://dividend-portfolio-tracker.vercel.app/pay_div'
+    try:
+        URL = os.environ["ENPOINT_DIV"]
+    except KeyError:
+        URL = "URL not available!"
 
     # Send a POST request to the endpoint
-    response = requests.get(url)
+    response = requests.get(URL)
 
     # Check if the response status code is 200 (OK)
     if response.status_code == 200:

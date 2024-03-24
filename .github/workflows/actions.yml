@@ -21,12 +21,12 @@ jobs:
         # pip install -r requirements.txt
         run: |
           python -m pip install --upgrade pip
-          pip install requests
+          pip install requests==2.28.1
 
           
       - name: execute py script # run main.py
-        # env:
-        #   SOME_SECRET: ${{ secrets.SOME_SECRET }}
+        env:
+          SOME_SECRET: ${{ secrets.ENPOINT_DIV }}
         run: python portfolio/cron_jobs/pay_div_endpoint.py
           
       # - name: commit files
