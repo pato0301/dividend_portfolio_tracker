@@ -2,27 +2,32 @@
 
 
 {% block body %}
+{% load custom_filters %}
     <h1>My Dividend Logs</h1>
     <p>{{ min_div_date }}</p>
     <table>
-        <thead>
+      <thead>
           <tr>
-            <th>Year/Month</th>
-            {% for stock in stocks %}
-              <th>{{ stock.ticker }}</th>
-            {% endfor %}
+              <th>Date</th>
+              {% for stock in stocks %}
+                  <th>{{ stock }}</th>
+              {% endfor %}
           </tr>
-        </thead>
-        <tbody>
+      </thead>
+      <tbody>
           {% for date_ticker in date_ticket_list %}
-          <tr>
-              {% for ticker in date_ticker %}
-                <td>{{ ticker }}</td>
-              {% endfor %} 
-            </tr>
+              {% for date, ticker_data in date_ticker.items %}
+                <tr>
+                  <td>{{ date }}</td>
+                  {% for stock in stocks %}
+                    <td>{{ ticker_data|get_item:stock|default:"0" }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
           {% endfor %}
-        </tbody>
-    </table>
+      </tbody>
+  </table>
+   
     <a href="{% url 'portfolio:index' %}">Home</a>
     <br>
     <a href="{% url 'users:logout' %}">Log out</a>

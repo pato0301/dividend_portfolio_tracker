@@ -270,6 +270,10 @@ def load_dividen_log(request):
     # Retrieve all dividend payments for the current user
     user_dividend_payments = DividendPayment.objects.filter(user_id=request.user)
 
+    unique_stock_paid = user_dividend_payments.values_list('ticker', flat=True).distinct()
+
+    print("unique_stock_paid: ", unique_stock_paid)
+
     # Get the earliest payment date
     earliest_payment_date = user_dividend_payments.aggregate(earliest_date=Min('payment_date'))['earliest_date']
 
@@ -295,21 +299,55 @@ def load_dividen_log(request):
             end_month = current_month + 1 if year == current_year else 13
             for month in range(start_month, end_month):
                 date_list.append(datetime(year, month, 1).date())
-    
 
     # Create a list of dictionaries with date and ticker values
+    # result = []
+    # for date in date_list:
+    #     ticker_dividends = [date]
+    #     for dividend in user_dividend_payments:
+    #         if dividend.payment_date.year == date.year and dividend.payment_date.month == date.month:
+    #             ticker_dividends.append(dividend.amount)
+    #         else:
+    #             ticker_dividends.append(0)
+    #     result.append(ticker_dividends)
+
     result = []
     for date in date_list:
-        ticker_dividends = [date]
+        # ticker_dividends = [date]
+        ticker_dividends = {}
+        ticker_dividends[date] = {}
+        # print("ticker_dividends: ", ticker_dividends)
         for dividend in user_dividend_payments:
             if dividend.payment_date.year == date.year and dividend.payment_date.month == date.month:
-                ticker_dividends.append(dividend.amount)
+                # print("dividend.ticker: ", dividend.ticker)
+                # print("dividend.amount: ", dividend.amount)
+                ticker_dividends[date][dividend.ticker] = dividend.amount
+                # ticker_dividends.append(dividend.amount)
             else:
-                ticker_dividends.append(0)
+                if dividend.ticker not in ticker_dividends[date].keys():
+                    ticker_dividends[date][dividend.ticker] = 0
+                # ticker_dividends.append(0)
         result.append(ticker_dividends)
+        # print(f"result {date}: ", result)
+
+
+    # Create a dictionary to organize dividend payments by ticker
+    # ticker_dividends_dict = {dividend.ticker: [0] * len(date_list) for dividend in user_dividend_payments}
+
+    # # Populate the dictionary with dividend amounts
+    # for ticker, dividends in ticker_dividends_dict.items():
+    #     for i, date in enumerate(date_list):
+    #         dividend = user_dividend_payments.filter(ticker=ticker, payment_date__year=date.year, payment_date__month=date.month).first()
+    #         if dividend:
+    #             ticker_dividends_dict[ticker][i] = dividend.amount
+    
+    # # Convert the dictionary to the desired result format
+    # result = [[date] + ticker_dividends_dict[ticker] for date in date_list for ticker in ticker_dividends_dict]
+
+    print("result: ", result)
 
     return render(request, "portfolio/dividend.html", {
-        "stocks" : user_dividend_payments,
+        "stocks" : unique_stock_paid,
         "date_ticket_list" : result
     })
 
