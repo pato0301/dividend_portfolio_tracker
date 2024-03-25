@@ -9,8 +9,8 @@ class Portfolio(models.Model):
     n_stock = models.FloatField()
     avg_price = models.FloatField()
     industry = models.CharField(max_length=150)
-    n_stock_next_exdiv_payment = models.FloatField()
-    next_exdiv_payment = models.DateField(auto_now=False, auto_now_add=False)
+    n_stock_next_exdiv_payment = models.FloatField(default=None, blank=True, null=True)
+    next_exdiv_payment = models.DateField(auto_now=False, auto_now_add=False, default=None, blank=True, null=True)
     user_id = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
