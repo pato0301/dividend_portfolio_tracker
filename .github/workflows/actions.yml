@@ -23,6 +23,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests==2.28.1 python-dotenv==1.0.1
 
+      - name: Print environment variables
+        run: |
+          echo "ENPOINT_DIV: ${{ secrets.ENPOINT_DIV }}"
           
       - name: execute py script # run main.py
         env:
