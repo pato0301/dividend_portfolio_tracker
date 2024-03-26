@@ -11,6 +11,8 @@ def main():
         URL = os.environ["ENPOINT_DIV"]
     except KeyError:
         URL = "URL not available!"
+    
+    print(URL)
 
     # Send a POST request to the endpoint
     response = requests.get(URL)
