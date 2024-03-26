@@ -26,7 +26,7 @@ jobs:
           
       - name: execute py script # run main.py
         env:
-          SOME_SECRET: ${{ secrets.ENPOINT_DIV }}
+          ENPOINT_DIV: ${{ secrets.ENPOINT_DIV }}
         run: python portfolio/cron_jobs/pay_div_endpoint.py
           
       # - name: commit files
