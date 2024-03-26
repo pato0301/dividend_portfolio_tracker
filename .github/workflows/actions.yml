@@ -3,6 +3,7 @@ name: run pay_div_endpoint.py
 on:
   schedule:
     - cron: '54 17 * * *' # At 02:00 every day
+  workflow_dispatch
 
 jobs:
   build:
