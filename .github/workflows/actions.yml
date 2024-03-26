@@ -3,7 +3,13 @@ name: run pay_div_endpoint.py
 on:
   schedule:
     - cron: '54 17 * * *' # At 02:00 every day
-  workflow_dispatch
+  workflow_dispatch:  # Allow manual triggering of the workflow
+    inputs:
+      your_input_name:
+        description: 'Description of your input'
+        required: false
+        default: 'Default value'
+
 
 jobs:
   build:
