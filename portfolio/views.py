@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib import messages, auth
 from django.db.models import Avg, Min
+from django.utils import timezone
 from .models import Portfolio, Transaction, DividendPayment
 from asgiref.sync import sync_to_async
 from django.db.models import Q
@@ -204,6 +205,7 @@ async def save_sell_stock(request):
                 number_stocks = form.cleaned_data["number_stocks"]
                 price_stocks = form.cleaned_data["price_stocks"]
                 sell_date = form.cleaned_data["date"]
+                today = timezone.now().date()
                 # print(ticker, number_stocks, price_stocks, sell_date)
                 try:
                     # Get the Portfolio entry for the user and ticker, if it exists
@@ -214,6 +216,9 @@ async def save_sell_stock(request):
 
                     if number_stocks > portfolio_entry.n_stock:
                         raise ValueError("Selling more stocks than in portfolio")
+                    
+                    if sell_date > today:
+                        raise ValueError("Sell date cannot be in the future")
 
                     sell_stock = await Transaction.objects.acreate(
                         operation="sell",
@@ -272,7 +277,7 @@ def load_dividen_log(request):
 
     unique_stock_paid = user_dividend_payments.values_list('ticker', flat=True).distinct()
 
-    print("unique_stock_paid: ", unique_stock_paid)
+    # print("unique_stock_paid: ", unique_stock_paid)
 
     # Get the earliest payment date
     earliest_payment_date = user_dividend_payments.aggregate(earliest_date=Min('payment_date'))['earliest_date']
@@ -344,7 +349,7 @@ def load_dividen_log(request):
     # # Convert the dictionary to the desired result format
     # result = [[date] + ticker_dividends_dict[ticker] for date in date_list for ticker in ticker_dividends_dict]
 
-    print("result: ", result)
+    # print("result: ", result)
 
     return render(request, "portfolio/dividend.html", {
         "stocks" : unique_stock_paid,
