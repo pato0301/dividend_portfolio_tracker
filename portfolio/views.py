@@ -103,7 +103,18 @@ async def save_buy_stock(request):
                 number_stocks = form.cleaned_data["number_stocks"]
                 price_stocks = form.cleaned_data["price_stocks"]
                 buy_date = form.cleaned_data["date"]
+                today = timezone.now().date()
                 # print(ticker, number_stocks, price_stocks, buy_date)
+
+                if buy_date > today:
+                    raise ValueError("Buy date cannot be in the future")
+
+                if price_stocks <= 0:
+                    raise ValueError("Buy price cannot be lower than 0")
+                
+                if number_stocks <= 0:
+                    raise ValueError("Number of stock bought cannot be less than 0")
+
                 try:
                     stock_data = yf.Ticker(ticker)
                     # Extract relevant information such as price, name, etc.
