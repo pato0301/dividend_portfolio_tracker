@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseNotAllowed
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages, auth
 from django.db.models import Avg, Min
@@ -12,6 +12,7 @@ from django.db.models import Q
 from .cron_jobs.process_dividend_payments import process_dividend_payments
 
 import yfinance as yf
+import csv
 from datetime import datetime
 import time
 
@@ -58,6 +59,19 @@ class SellStockForm(forms.Form):
             widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
             input_formats=["%Y-%m-%d"]
         )
+
+class CSVUploadForm(forms.Form):
+    csv_file = forms.FileField(
+        label='Select a CSV file',
+        help_text='Please upload a CSV file',
+        widget=forms.FileInput(attrs={'accept': '.csv'})
+    )
+
+    def clean_csv_file(self):
+        csv_file = self.cleaned_data['csv_file']
+        if not csv_file.name.endswith('.csv'):
+            raise forms.ValidationError('Please upload a valid CSV file.')
+        return csv_file
 
 # Create your views here.
 @login_required
@@ -118,10 +132,17 @@ async def save_buy_stock(request):
                 try:
                     stock_data = yf.Ticker(ticker)
                     # Extract relevant information such as price, name, etc.
-                    industry = stock_data.info['sector']
-                    stock_name = stock_data.info['shortName']
-                    exDividendDate = stock_data.info['exDividendDate']
-                    next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
+                    # industry = stock_data.info['sector']
+                    # stock_name = stock_data.info['shortName']
+                    # exDividendDate = stock_data.info['exDividendDate']
+                    industry =  stock_data.info.get('sector', None)
+                    stock_name = stock_data.info.get('shortName', None)
+                    exDividendDate = stock_data.info.get('exDividendDate', None) 
+                    if exDividendDate:
+                        next_exdiv_payment = datetime.fromtimestamp(exDividendDate).date()
+                    else:
+                        next_exdiv_payment = None
+                    # next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
 
                     # print(industry, next_exdiv_payment)
                     new_stock = await Transaction.objects.acreate(
@@ -153,7 +174,7 @@ async def save_buy_stock(request):
                         portfolio_entry.n_stock += number_stocks
 
                         # Check if buy_date is before next_exdiv_payment
-                        if buy_date < portfolio_entry.next_exdiv_payment:
+                        if portfolio_entry.next_exdiv_payment and buy_date < portfolio_entry.next_exdiv_payment:
                             portfolio_entry.n_stock_next_exdiv_payment += number_stocks
 
                         await sync_to_async(portfolio_entry.save)()
@@ -168,8 +189,8 @@ async def save_buy_stock(request):
                             n_stock=number_stocks,
                             avg_price=price_stocks,
                             industry=industry,
-                            n_stock_next_exdiv_payment=number_stocks if buy_date < next_exdiv_payment.date() else 0,
-                            next_exdiv_payment=next_exdiv_payment if next_exdiv_payment.date() > buy_date else None,
+                            n_stock_next_exdiv_payment=number_stocks if next_exdiv_payment and buy_date < next_exdiv_payment.date() else 0,
+                            next_exdiv_payment=next_exdiv_payment if next_exdiv_payment and next_exdiv_payment.date() > buy_date else None,
                             user_id=user
                         )
                         # second_mid_time = time.time()
@@ -250,7 +271,7 @@ async def save_sell_stock(request):
                         # print("reduce n_stock")
 
                         # Check if sell_date is before next_exdiv_payment
-                        if sell_date < portfolio_entry.next_exdiv_payment:
+                        if portfolio_entry.next_exdiv_payment and sell_date < portfolio_entry.next_exdiv_payment:
                             # print("reduce n_stock_next_exdiv_payment")
                             portfolio_entry.n_stock_next_exdiv_payment -= number_stocks
 
@@ -366,6 +387,162 @@ def load_dividen_log(request):
         "stocks" : unique_stock_paid,
         "date_ticket_list" : result
     })
+
+async def upload_csv(request):
+    is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
+    if not is_authenticated:
+        return HttpResponseRedirect(reverse("users:login"))
+
+    if request.method == 'GET':
+        return render(request, 'portfolio/upload_csv.html', {
+            'form': CSVUploadForm()
+        })
+
+    elif request.method == 'POST':
+        user = await sync_to_async(lambda: request.user)()
+        form = CSVUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            csv_file = request.FILES['csv_file']
+            
+            # Check if the uploaded file is a CSV
+            if not csv_file.name.endswith('.csv'):
+                return HttpResponse('Please upload a valid CSV file.')
+
+            # Validate CSV content
+            try:
+                reader = csv.DictReader(csv_file.read().decode('utf-8').splitlines())
+            except Exception as e:
+                return HttpResponse(f'Error reading CSV: {e}')
+
+            required_columns = ['ticker', 'number_stocks', 'price', 'date', 'type_of_action']
+            for col in required_columns:
+                if col not in reader.fieldnames:
+                    return HttpResponse(f'Missing column: {col}')
+
+            for row in reader:
+                ticker = row['ticker']
+                
+                # Ensure price_stocks and number_stocks are not None or empty
+                price_stocks = row.get('price')
+                number_stocks = row.get('number_stocks')
+                
+                if price_stocks is None or not price_stocks.strip():
+                    return HttpResponse("Price cannot be null or empty.")
+                
+                if number_stocks is None or not number_stocks.strip():
+                    return HttpResponse("Number of stocks cannot be null or empty.")
+                
+                price_stocks = float(price_stocks)
+                number_stocks = float(number_stocks)
+                
+                action_date = datetime.strptime(row['date'], '%d/%m/%Y').date()
+                action_type = row['type_of_action']
+
+                today = timezone.now().date()
+
+                if action_type == 'BUY':
+                    if action_date > today:
+                        return HttpResponse("Buy date cannot be in the future")
+                    if price_stocks <= 0:
+                        return HttpResponse("Buy price cannot be lower than or equal to 0")
+                    if number_stocks <= 0:
+                        return HttpResponse("Number of stock bought cannot be less than or equal to 0")
+
+                    try:
+                        stock_data = yf.Ticker(ticker)
+                        industry =  stock_data.info.get('sector', None) #stock_data.info['sector']
+                        stock_name = stock_data.info.get('shortName', None) #stock_data.info['shortName']
+                        exDividendDate = stock_data.info.get('exDividendDate', None) #stock_data.info['exDividendDate']
+                        print(f"stock: {stock_name} exDividendDate: {exDividendDate}")
+                        if exDividendDate:
+                            next_exdiv_payment = datetime.fromtimestamp(exDividendDate).date()
+                        else:
+                            next_exdiv_payment = None
+                        # next_exdiv_payment = datetime.fromtimestamp(exDividendDate).date()
+
+                        new_stock = await Transaction.objects.acreate(
+                            operation="buy",
+                            ticker=ticker,
+                            operation_date=action_date,
+                            n_stock=number_stocks,
+                            price=price_stocks,
+                            user_id=user
+                        )
+
+                        portfolio_entry = await Portfolio.objects.filter(user_id=user, ticker=ticker).afirst()
+
+                        if portfolio_entry:
+                            transactions = Transaction.objects.filter(user_id=user, ticker=ticker)
+                            average_price = await sync_to_async(lambda: transactions.aggregate(avg_price=Avg('price'))['avg_price'])()
+                            
+                            portfolio_entry.avg_price = round(average_price, 2)
+                            portfolio_entry.n_stock += number_stocks
+
+                            if portfolio_entry.next_exdiv_payment and action_date < portfolio_entry.next_exdiv_payment:
+                                portfolio_entry.n_stock_next_exdiv_payment += number_stocks
+
+                            await sync_to_async(portfolio_entry.save)()
+                            
+                        else:
+                            new_stock = await Portfolio.objects.acreate(
+                                ticker=ticker,
+                                name=stock_name,
+                                n_stock=number_stocks,
+                                avg_price=price_stocks,
+                                industry=industry,
+                                n_stock_next_exdiv_payment=number_stocks if next_exdiv_payment and action_date < next_exdiv_payment else 0,
+                                next_exdiv_payment=next_exdiv_payment if next_exdiv_payment and next_exdiv_payment > action_date else None,
+                                user_id=user
+                            )
+                    except Exception as e:
+                        return HttpResponse(f'Error processing buy action for {ticker}: {e}')
+
+                elif action_type == 'SELL':
+                    if action_date > today:
+                        return HttpResponse("Sell date cannot be in the future")
+
+                    portfolio_entry = await Portfolio.objects.filter(user_id=user, ticker=ticker).afirst()
+
+                    if not portfolio_entry:
+                        return HttpResponse("Stock not in portfolio")
+
+                    if number_stocks > portfolio_entry.n_stock:
+                        return HttpResponse("Selling more stocks than in portfolio")
+
+                    try:
+                        sell_stock = await Transaction.objects.acreate(
+                            operation="sell",
+                            ticker=ticker,
+                            operation_date=action_date,
+                            n_stock=number_stocks,
+                            price=price_stocks,
+                            user_id=user
+                        )
+
+                        if portfolio_entry.n_stock == number_stocks:
+                            await portfolio_entry.adelete()
+                        else:
+                            portfolio_entry.n_stock -= number_stocks
+
+                            if portfolio_entry.next_exdiv_payment and action_date < portfolio_entry.next_exdiv_payment:
+                                portfolio_entry.n_stock_next_exdiv_payment -= number_stocks
+
+                            await sync_to_async(portfolio_entry.save)()
+                            
+                    except Exception as e:
+                        return HttpResponse(f'Error processing sell action for {ticker}: {e}')
+
+            # return HttpResponse('CSV file processed successfully.')
+            return redirect('portfolio:index') 
+
+        else:
+            return render(request, 'upload_csv.html', {'form': form})
+
+
+
+
+
+
 
 # @login_required
 # def pay_div(request):

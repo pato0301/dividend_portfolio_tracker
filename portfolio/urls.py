@@ -9,5 +9,6 @@ urlpatterns = [
     path("sell-stock", views.load_sell_stock, name="load_sell_stock"),
     path("save-sell-stock", views.save_sell_stock, name="save_sell_stock"),
     path("view-dividends", views.load_dividen_log, name="view_dividends"),
+    path("upload-csv-history", views.upload_csv, name="upload_csv_history"),
     path("pay-div", views.pay_div, name="pay_div")
 ]

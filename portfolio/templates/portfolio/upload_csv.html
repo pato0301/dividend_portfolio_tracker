@@ -1,12 +1,11 @@
 {% extends "portfolio/layout.html"%}
 
 {% block body %}
-    <h1>Buy stock</h1>
-    <form  action="{% url 'portfolio:save_buy_stock' %}" method="post">
+    <h1>Upload CSV</h1>
+    <form  action="{% url 'portfolio:upload_csv_history' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form }}
         <input type="submit">
     </form>
     <a href="{% url 'portfolio:index' %}">Back to portfolio</a>
-    <a href="{% url 'portfolio:upload_csv_history' %}">Upload History with CSV</a>
 {% endblock %}
