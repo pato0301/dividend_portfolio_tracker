@@ -1,0 +1,77 @@
+/* Custom styles for the navbar */
+.navbar {
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand {
+    margin-right: auto; /* Moves the logo to the right */
+}
+
+.mobile-menu-button {
+    height: 100%; /* Set the height to 100% of the navbar height */
+    display: flex;
+    align-items: center; /* Vertically center the button */
+}
+
+.navbar-toggler {
+    border: none; /* Removes the border from the hamburger menu */
+    background-color: transparent; /* Make the button background transparent */
+    cursor: pointer; /* Change cursor to pointer on hover */
+
+}
+
+/* Style for the navbar links */
+.navbar-nav {
+    margin-right: 0; /* Removes default margin */
+    display: flex; /* Make the ul a flex container */
+    align-items: center; /* Center the items vertically */
+}
+
+.navbar-nav .nav-item {
+    list-style-type: none; /* Removes the dots */
+    margin-right: 15px; /* Adds some space between the items */
+}
+
+.navbar-nav .nav-link {
+    padding: 15px 20px; /* Adjust padding for better aesthetic */
+    color: #333; /* Text color */
+    text-decoration: none; /* Removes underline */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.navbar-nav .nav-item:hover {
+    color: #242424;
+    transform: scale(1.2); /* Zoom effect on hover */
+}
+
+/* Style for the navbar in mobile view */
+@media (max-width: 768px) {
+    .navbar-expand-lg .navbar-nav {
+        flex-direction: column; /* Stacks the links vertically */
+        background-color: #f8f9fa; /* Background color for the mobile navbar */
+        position: absolute;
+        top: 50px; /* Position below the navbar header */
+        width: 100%;
+        left: -100%; /* Start off-screen */
+        transition: left 0.3s; /* Smooth transition for showing/hiding */
+    }
+
+    .navbar-expand-lg .navbar-toggler {
+        display: block; /* Show the hamburger menu */
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
+    .navbar-expand-lg .navbar-toggler:focus {
+        outline: none; /* Removes focus outline */
+    }
+
+    /* Show the navbar links when the hamburger menu is clicked */
+    .navbar-expand-lg .navbar-toggler[aria-expanded="true"] ~ .navbar-nav {
+        left: 0;
+    }
+}
