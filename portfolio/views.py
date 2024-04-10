@@ -169,7 +169,7 @@ async def save_buy_stock(request):
                             avg_price=price_stocks,
                             industry=industry,
                             n_stock_next_exdiv_payment=number_stocks if buy_date < next_exdiv_payment.date() else 0,
-                            next_exdiv_payment=next_exdiv_payment,
+                            next_exdiv_payment=next_exdiv_payment if next_exdiv_payment.date() > buy_date else None,
                             user_id=user
                         )
                         # second_mid_time = time.time()
