@@ -11,23 +11,31 @@
 }
 
 .mobile-menu-button {
-    height: 100%; /* Set the height to 100% of the navbar height */
-    display: flex;
-    align-items: center; /* Vertically center the button */
+    display: none; /* Hide the mobile menu button by default */
+
 }
 
 .navbar-toggler {
     border: none; /* Removes the border from the hamburger menu */
     background-color: transparent; /* Make the button background transparent */
     cursor: pointer; /* Change cursor to pointer on hover */
-
+    max-width: auto; /* Set width to auto */
+    max-height: 100%; /* Set height to 100% */
 }
 
 /* Style for the navbar links */
 .navbar-nav {
-    margin-right: 0; /* Removes default margin */
-    display: flex; /* Make the ul a flex container */
-    align-items: center; /* Center the items vertically */
+    display: none; /* Hide the navbar links by default */
+    width: 100%; /* Set width to 100% */
+    text-align: center; /* Center the text */
+    opacity: 0; /* Initially hide the navbar links */
+    transition: all 0.3s; /* Smooth transition for showing/hiding */
+    /* margin-right: 0; */
+     /* Removes default margin */
+    /* display: flex;  */
+    /* Make the ul a flex container */
+    /* align-items: center;  */
+    /* Center the items vertically */
 }
 
 .navbar-nav .nav-item {
@@ -39,7 +47,8 @@
     padding: 15px 20px; /* Adjust padding for better aesthetic */
     color: #333; /* Text color */
     text-decoration: none; /* Removes underline */
-    transition: background-color 0.3s; /* Smooth transition for hover effect */
+    /* transition: background-color 0.3s; */
+     /* Smooth transition for hover effect */
 }
 
 .navbar-nav .nav-item:hover {
@@ -47,31 +56,74 @@
     transform: scale(1.2); /* Zoom effect on hover */
 }
 
+.navbar-toggler img {
+    width: 100%; /* Set width to 100% of the button */
+    height: 100%; /* Set height to 100% of the button */
+}
+
+#navBarLogo {
+    position: relative; /* Ensure relative positioning for absolute positioning of navbar links */
+}
+
+/* Media query for screens wider than 768px */
+@media (min-width: 769px) {
+    .navbar-nav {
+        display: flex; /* Show the navbar links */
+        justify-content: flex-end; /* Align links to the right */
+        align-items: center; /* Center the items vertically */
+        opacity: 1; /* Show the navbar links */
+    }
+
+    .navbar-nav ul {
+        list-style-type: none; /* Removes the dots */
+        padding: 0; /* Removes default padding */
+        display: flex;
+    }
+
+    .navbar-nav .nav-item {
+        margin-left: 15px; /* Adds some space between the items */
+    }
+
+    .navbar-nav .nav-link {
+        padding: 15px 20px; /* Adjust padding for better aesthetic */
+        color: #333; /* Text color */
+        text-decoration: none; /* Removes underline */
+        font-weight: bold; /* Makes the text bolder */
+        /* transition: background-color 0.3s, transform 0.3s;  */
+        /* Smooth transitions for hover effects */
+    }
+
+    .navbar-nav .nav-link:hover {
+        background-color: #f8f9fa; /* Background color on hover */
+        transform: scale(1.1); /* Zoom effect on hover */
+    }
+}
+
 /* Style for the navbar in mobile view */
 @media (max-width: 768px) {
-    .navbar-expand-lg .navbar-nav {
-        flex-direction: column; /* Stacks the links vertically */
-        background-color: #f8f9fa; /* Background color for the mobile navbar */
-        position: absolute;
-        top: 50px; /* Position below the navbar header */
-        width: 100%;
-        left: -100%; /* Start off-screen */
-        transition: left 0.3s; /* Smooth transition for showing/hiding */
+    .mobile-menu-button {
+        display: block; /* Show the mobile menu button */
     }
 
-    .navbar-expand-lg .navbar-toggler {
-        display: block; /* Show the hamburger menu */
-        position: absolute;
-        top: 0;
-        right: 0;
+    .navbar-nav {
+        position: absolute; /* Position the navbar links absolutely */
+        top: 100%; /* Position the navbar links below the navbar */
+        left: 0; /* Align the navbar links to the left */
+        width: 100%; /* Set the width to 100% */
+        background-color: #fff; /* Set background color */
+        border: 1px solid #e5e5e5; /* Add a border */
+        display: none; /* Hide the navbar links by default */
+        opacity: 0; /* Initially hide the navbar links */
+        transition: all 0.3s; /* Smooth transition for showing/hiding */
     }
 
-    .navbar-expand-lg .navbar-toggler:focus {
-        outline: none; /* Removes focus outline */
+    #mobileMenuImg {
+        max-height: 30px;
     }
 
-    /* Show the navbar links when the hamburger menu is clicked */
-    .navbar-expand-lg .navbar-toggler[aria-expanded="true"] ~ .navbar-nav {
-        left: 0;
+    .navbar-nav.show {
+        display: block; /* Show the navbar links when .show class is added */
+        opacity: 1; /* Show the navbar links */
     }
+
 }

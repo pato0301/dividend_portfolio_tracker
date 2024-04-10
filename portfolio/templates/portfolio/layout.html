@@ -12,7 +12,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div id="navBarLogo">
             <a class="navbar-brand" href="{% url 'portfolio:index' %}">
-                <img src="{% static 'portfolio/img/dollar-symbol.png' %}" height="30" alt="Your Logo">
+                <img src="{% static 'portfolio/img/dollar-symbol.png' %}" height="30px" alt="Your Logo">
             </a>
         </div>
 
@@ -36,6 +36,13 @@
                 </li>
             </ul>
         </div>
+
+        <!-- Mobile menu button div -->
+        <div class="mobile-menu-button">
+            <button class="navbar-toggler" type="button" aria-expanded="false" aria-label="Toggle navigation">
+                <img src="{% static 'portfolio/img/mobile-menu.png' %}" alt="Mobile Menu Icon" id="mobileMenuImg">
+            </button>
+        </div>
     </nav>
     <div class="container mt-5">
         {% block body %}
@@ -47,10 +54,52 @@
 <!-- JavaScript/jQuery code -->
 <script>
     $(document).ready(function() {
-        $(".navbar-toggler").click(function() {
-            $(".navbar-nav").slideToggle();
-        });
+    // Toggle the navbar links when the mobile menu button is clicked
+    $(".navbar-toggler").click(function() {
+        // Toggle the display of the navbar links
+        $("#navbarNav").toggleClass("show");
+
+        // If the navbar links are visible, adjust the layout
+        if ($("#navbarNav").hasClass("show")) {
+            // Calculate the position to display the navbar links
+            var logoHeight = $("#navBarLogo").outerHeight();
+            var navbarHeight = $("#navbarNav").outerHeight();
+            var totalHeight = logoHeight + navbarHeight;
+
+            // Adjust the position of the navbar links
+            $("#navbarNav").css({
+                position: "absolute",
+                top: totalHeight + "px",
+                left: "0",
+                zIndex: "1000",
+                backgroundColor: "#fff",
+                width: "100%",
+                display: "none"
+            }).slideDown(); // Slide down to show the navbar links
+        } else {
+            // Hide the navbar links and reset the layout
+            $("#navbarNav").slideUp(function() {
+                $(this).css({
+                    position: "",
+                    top: "",
+                    left: "",
+                    zIndex: "",
+                    backgroundColor: "",
+                    width: "",
+                    display: ""
+                });
+            });
+        }
     });
+
+    // Hide the navbar links when the window is resized to wider than 992px
+    $(window).resize(function() {
+        if ($(window).width() > 992) {
+            $("#navbarNav").removeClass("show").removeAttr("style");
+        }
+    });
+});
+
 </script>
 </body>
 </html>
