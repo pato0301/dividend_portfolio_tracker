@@ -4,7 +4,7 @@
 {% block body %}
 {% load custom_filters %}
     <h1>My Dividend Logs</h1>
-    {% if stocks and stocks|length > 0 and start_display_date == None %}
+    {% if stocks and stocks|length > 0 and start_display_date %}
       <table>
           <thead>
               <tr>
