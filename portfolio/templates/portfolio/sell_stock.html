@@ -2,10 +2,18 @@
 
 {% block body %}
     <h1>Sell stock</h1>
-    <form  action="{% url 'portfolio:save_sell_stock' %}" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit">
-    </form>
-    <a href="{% url 'portfolio:index' %}">Back to portfolio</a>
+    <div class="form-container">
+        <form  action="{% url 'portfolio:save_sell_stock' %}" method="post" class="my-form">
+            {% csrf_token %}
+            <!-- {{ form }} -->
+            {% for field in form %}
+                    <div class="fieldWrapper">
+                        {{ field.errors }}
+                        {{ field.label_tag }} {{ field }}
+                    </div>
+                {% endfor %}
+            <input type="submit" value="Sell Stock">
+        </form>
+    </div>
+    <!-- <a href="{% url 'portfolio:index' %}">Back to portfolio</a> -->
 {% endblock %}

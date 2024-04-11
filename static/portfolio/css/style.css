@@ -1,0 +1,47 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+    /* font-family: Arial, sans-serif; */
+    /* background-color: #f4f4f4; */
+    /* display: flex; */
+    /* justify-content: center; */
+    /* align-items: center; */
+    /* height: 100vh; */
+}
+
+#noDividendHistoryWarning {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    width: fit-content;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+a {
+    color: #f9f7f7;
+    text-decoration: none; /* Removes underline */
+}
+
+button {
+    width: auto; /* Adjusted to auto so it only takes the necessary width */
+    margin: 0 auto; /* Center the button horizontally and add some margin for spacing */
+    padding: 10px 15px;
+    background-color: #054993;
+    border: 1px solid #054993;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+/* Hover effect for the button */
+.button:hover {
+    background-color: #0a3f76;
+    border-color: #0a3f76;
+    transform: scale(1.05);
+}

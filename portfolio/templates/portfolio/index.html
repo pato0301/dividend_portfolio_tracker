@@ -2,7 +2,7 @@
 
 {% block body %}
     <h1>My Portfolio</h1>
-    <table>
+    <table class="HomePortfolioTable">
         <thead>
           <tr>
             <th>Ticker</th>
@@ -28,9 +28,9 @@
           {% endfor %}
         </tbody>
     </table>
-    <a href="{% url 'portfolio:load_buy_stock' %}">Buy stock</a>
+    <!-- <a href="{% url 'portfolio:load_buy_stock' %}">Buy stock</a>
     <a href="{% url 'portfolio:load_sell_stock' %}">Sell stock</a>
     <a href="{% url 'portfolio:view_dividends' %}">Dividend logs</a>
     <br>
-    <a href="{% url 'users:logout' %}">Log out</a>
+    <a href="{% url 'users:logout' %}">Log out</a> -->
 {% endblock %}

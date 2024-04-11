@@ -2,10 +2,35 @@
 
 {% block body %}
     <h1>Upload CSV</h1>
-    <form  action="{% url 'portfolio:upload_csv_history' %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit">
-    </form>
-    <a href="{% url 'portfolio:index' %}">Back to portfolio</a>
+    <div class="form-container">
+        <form  action="{% url 'portfolio:upload_csv_history' %}" method="post" enctype="multipart/form-data" class="my-form">
+            {% csrf_token %}
+            <!-- {{ form }} -->
+            {% for field in form %}
+                {% if field.id_for_label == "id_csv_file" %}
+                    <div class="fieldWrapperUploadCsv">
+                        <label class="label_upload_csv" for="{{ field.auto_id }}">{{ field.label }}</label>
+                        {{ field }}
+                        <span id="file-name" class="file-name"></span>
+                    </div>
+                {% else %}
+                    <div class="fieldWrapper">
+                        {{ field.errors }}
+                        {{ field.label_tag }} {{ field }}
+                    </div>
+                {% endif %}
+                
+            {% endfor %}
+            <input type="submit" value="Upload transactions">
+        </form>
+    </div>
+    <!-- <a href="{% url 'portfolio:index' %}">Back to portfolio</a> -->
+    <script>
+        function displayFileName(input) {
+            const fileName = input.files[0].name;
+            const fileNameElement = document.getElementById('file-name');
+            fileNameElement.textContent = "File name is " + fileName;
+            fileNameElement.style.display = 'inline'; // Change the display property to 'inline'
+        }
+    </script>
 {% endblock %}

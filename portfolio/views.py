@@ -11,67 +11,69 @@ from asgiref.sync import sync_to_async
 from django.db.models import Q
 from .cron_jobs.process_dividend_payments import process_dividend_payments
 
+from .forms import BuyStockForm, CSVUploadForm, SellStockForm
+
 import yfinance as yf
 import csv
 from datetime import datetime
 import time
 
-class BuyStockForm(forms.Form):
-    ticker = forms.CharField(label="Stock ticker")
-    number_stocks = forms.FloatField(label="Number of stock", min_value=0, step_size=0.00001)
-    price_stocks = forms.FloatField(label="Price", min_value=0, step_size=0.01)
-    date = forms.DateField(
-        label="Date",
-        widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
-        input_formats=["%Y-%m-%d"]
-    )
+# class BuyStockForm(forms.Form):
+#     ticker = forms.CharField(label="Stock ticker")
+#     number_stocks = forms.FloatField(label="Number of stock", min_value=0, step_size=0.00001)
+#     price_stocks = forms.FloatField(label="Price", min_value=0, step_size=0.01)
+#     date = forms.DateField(
+#         label="Date",
+#         widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+#         input_formats=["%Y-%m-%d"]
+#     )
 
 
-class SellStockForm(forms.Form):
+# class SellStockForm(forms.Form):
 
-    def __init__(self, user, *args, **kwargs):
-        super(SellStockForm, self).__init__(*args, **kwargs)
-        # Filter tickers based on user's portfolio
-        portfolio_entries = Portfolio.objects.filter(user_id=user)
+#     def __init__(self, user, *args, **kwargs):
+#         super(SellStockForm, self).__init__(*args, **kwargs)
+#         # Filter tickers based on user's portfolio
+#         portfolio_entries = Portfolio.objects.filter(user_id=user)
         
-        if portfolio_entries.exists():
-            ticker_choices = [(entry.ticker, entry.ticker) for entry in portfolio_entries]
-            self.fields['ticker'] = forms.ChoiceField(
-                label="Stock ticker",
-                choices=ticker_choices,
-                # initial='',
-                # disabled=True,
-                # required=False
-            )
-        else:
-            self.fields['ticker'] = forms.ChoiceField(
-                label="Stock ticker",
-                choices=[('', '---')],
-                initial='',
-                disabled=True,
-                required=False
-            )
+#         if portfolio_entries.exists():
+#             ticker_choices = [(entry.ticker, entry.ticker) for entry in portfolio_entries]
+#             self.fields['ticker'] = forms.ChoiceField(
+#                 label="Stock ticker",
+#                 choices=ticker_choices,
+#                 # initial='',
+#                 # disabled=True,
+#                 # required=False
+#             )
+#         else:
+#             self.fields['ticker'] = forms.ChoiceField(
+#                 label="Stock ticker",
+#                 choices=[('', '---')],
+#                 initial='',
+#                 disabled=True,
+#                 required=False
+#             )
 
-        self.fields['number_stocks'] = forms.FloatField(label="Number of stock", min_value=0)
-        self.fields['price_stocks'] = forms.FloatField(label="Price", min_value=0)
-        self.fields['date'] = forms.DateField(
-            label="Date",
-            widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
-            input_formats=["%Y-%m-%d"]
-        )
+#         self.fields['number_stocks'] = forms.FloatField(label="Number of stock", min_value=0)
+#         self.fields['price_stocks'] = forms.FloatField(label="Price", min_value=0)
+#         self.fields['date'] = forms.DateField(
+#             label="Date",
+#             widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+#             input_formats=["%Y-%m-%d"]
+#         )
 
-class CSVUploadForm(forms.Form):
-    csv_file = forms.FileField(
-        label='Select a CSV file',
-        help_text='Please upload a CSV file',
-        widget=forms.FileInput(attrs={'accept': '.csv'})
-    )
+# class CSVUploadForm(forms.Form):
+#     csv_file = forms.FileField(
+#         label='Select a CSV file',
+#         help_text='Please upload a CSV file',
+#         widget=forms.FileInput(attrs={'accept': '.csv'})
+#     )
 
-    def clean_csv_file(self):
-        csv_file = self.cleaned_data['csv_file']
-        if not csv_file.name.endswith('.csv'):
-            raise forms.ValidationError('Please upload a valid CSV file.')
-        return csv_file
+#     def clean_csv_file(self):
+#         csv_file = self.cleaned_data['csv_file']
+#         if not csv_file.name.endswith('.csv'):
+#             raise forms.ValidationError('Please upload a valid CSV file.')
+#         return csv_file
 
 # Create your views here.
 @login_required
@@ -349,6 +351,7 @@ def load_dividen_log(request):
     #     result.append(ticker_dividends)
 
     result = []
+    lowest_date_with_value = None
     for date in date_list:
         # ticker_dividends = [date]
         ticker_dividends = {}
@@ -360,6 +363,8 @@ def load_dividen_log(request):
                 # print("dividend.amount: ", dividend.amount)
                 ticker_dividends[date][dividend.ticker] = dividend.amount
                 # ticker_dividends.append(dividend.amount)
+                if dividend.amount > 0 and (lowest_date_with_value is None or date < lowest_date_with_value):
+                    lowest_date_with_value = date
             else:
                 if dividend.ticker not in ticker_dividends[date].keys():
                     ticker_dividends[date][dividend.ticker] = 0
@@ -385,7 +390,8 @@ def load_dividen_log(request):
 
     return render(request, "portfolio/dividend.html", {
         "stocks" : unique_stock_paid,
-        "date_ticket_list" : result
+        "date_ticket_list" : result,
+        "start_display_date" : lowest_date_with_value
     })
 
 async def upload_csv(request):

@@ -1,13 +1,89 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/portfolio/static/portfolio/style.css">
+    <link rel="stylesheet" href="{% static 'portfolio/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'portfolio/css/table_style.css' %}">
+    <link rel="stylesheet" href="{% static 'portfolio/css/form_style.css' %}">
+    <link rel="stylesheet" href="{% static 'portfolio/css/navbar_style.css' %}">
     <title>Portfolio</title>
 </head>
 <body>
-    {% block body %}
-    {% endblock %}
+    <header class="header">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div id="navBarLogo">
+                <a class="navbar-brand" href="{% url 'portfolio:index' %}">
+                    <img src="{% static 'portfolio/img/dollar-symbol.png' %}" height="30px" alt="Your Logo">
+                </a>
+            </div>
+    
+            <!-- Navbar links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="nav-menu ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'portfolio:load_buy_stock' %}">Buy Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'portfolio:load_sell_stock' %}">Sell Stocks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'portfolio:upload_csv_history' %}">Upload History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'portfolio:view_dividends' %}">View Dividends</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'portfolio:view_dividends' %}">View Metrics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'users:logout' %}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+    
+            <!-- Mobile menu button div -->
+            <div class="mobile-menu-button">
+                <span class="mobile-menu-bar"></span>
+                <span class="mobile-menu-bar"></span>
+                <span class="mobile-menu-bar"></span>
+                <!-- <img src="{% static 'portfolio/img/mobile-menu.png' %}" alt="Mobile Menu Icon" id="mobileMenuImg"> -->
+                <!-- <button class="navbar-toggler" type="button" aria-expanded="false" aria-label="Toggle navigation">
+                </button> -->
+            </div>
+        </nav>
+    </header>
+    <div class="container mt-5">
+        {% block body %}
+        {% endblock %}
+    </div>
+
+<!-- jQuery library -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- JavaScript/jQuery code -->
+<script>
+    const mobileMenuDiv = document.querySelector(".mobile-menu-button");
+    const navMenu = document.querySelector(".nav-menu");
+    const navMenuColap = document.querySelector(".navbar-collapse");
+
+    mobileMenuDiv.addEventListener("click", mobileMenu);
+
+    function mobileMenu() {
+        console.log("Enter mobileMenu function");
+        mobileMenuDiv.classList.toggle("active");
+        navMenu.classList.toggle("active");
+        navMenuColap.classList.toggle("active");
+    }
+
+    const navLink = document.querySelectorAll(".nav-link");
+
+    navLink.forEach(n => n.addEventListener("click", closeMenu));
+
+    function closeMenu() {
+        mobileMenuDiv.classList.remove("active");
+        navMenuColap.classList.remove("active");
+    }
+</script>
 </body>
 </html>
