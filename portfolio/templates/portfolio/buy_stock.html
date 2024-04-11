@@ -5,7 +5,6 @@
     <div class="form-container">
         <form  action="{% url 'portfolio:save_buy_stock' %}" method="post" class="my-form">
             {% csrf_token %}
-            <!-- {{ form }} -->
             {% for field in form %}
                 <div class="fieldWrapper">
                     {{ field.errors }}
@@ -14,9 +13,9 @@
             {% endfor %}
             <input type="submit" value="Add Stock">
         </form>
-        <button class="uploadCsvButton">
+        <!-- <button class="uploadCsvButton">
             <a href="{% url 'portfolio:upload_csv_history' %}">Upload History with CSV</a>
-        </button>
+        </button> -->
     </div>
     <!-- <a href="{% url 'portfolio:index' %}">Back to portfolio</a> -->
     <!-- <a href="{% url 'portfolio:upload_csv_history' %}">Upload History with CSV</a> -->

@@ -35,3 +35,16 @@ class BuyStockForm(forms.Form):
         ),
         input_formats=["%Y-%m-%d"]
     )
+
+class CSVUploadForm(forms.Form):
+    csv_file = forms.FileField(
+        label='Select a CSV file',
+        help_text='Please upload a CSV file',
+        widget=forms.FileInput(attrs={'accept': '.csv', 'onchange': 'displayFileName(this)'})
+    )
+
+    def clean_csv_file(self):
+        csv_file = self.cleaned_data['csv_file']
+        if not csv_file.name.endswith('.csv'):
+            raise forms.ValidationError('Please upload a valid CSV file.')
+        return csv_file
