@@ -11,7 +11,7 @@ from asgiref.sync import sync_to_async
 from django.db.models import Q
 from .cron_jobs.process_dividend_payments import process_dividend_payments
 
-from .forms import BuyStockForm, CSVUploadForm
+from .forms import BuyStockForm, CSVUploadForm, SellStockForm
 
 import yfinance as yf
 import csv
@@ -29,38 +29,38 @@ import time
 #     )
 
 
-class SellStockForm(forms.Form):
+# class SellStockForm(forms.Form):
 
-    def __init__(self, user, *args, **kwargs):
-        super(SellStockForm, self).__init__(*args, **kwargs)
-        # Filter tickers based on user's portfolio
-        portfolio_entries = Portfolio.objects.filter(user_id=user)
+#     def __init__(self, user, *args, **kwargs):
+#         super(SellStockForm, self).__init__(*args, **kwargs)
+#         # Filter tickers based on user's portfolio
+#         portfolio_entries = Portfolio.objects.filter(user_id=user)
         
-        if portfolio_entries.exists():
-            ticker_choices = [(entry.ticker, entry.ticker) for entry in portfolio_entries]
-            self.fields['ticker'] = forms.ChoiceField(
-                label="Stock ticker",
-                choices=ticker_choices,
-                # initial='',
-                # disabled=True,
-                # required=False
-            )
-        else:
-            self.fields['ticker'] = forms.ChoiceField(
-                label="Stock ticker",
-                choices=[('', '---')],
-                initial='',
-                disabled=True,
-                required=False
-            )
+#         if portfolio_entries.exists():
+#             ticker_choices = [(entry.ticker, entry.ticker) for entry in portfolio_entries]
+#             self.fields['ticker'] = forms.ChoiceField(
+#                 label="Stock ticker",
+#                 choices=ticker_choices,
+#                 # initial='',
+#                 # disabled=True,
+#                 # required=False
+#             )
+#         else:
+#             self.fields['ticker'] = forms.ChoiceField(
+#                 label="Stock ticker",
+#                 choices=[('', '---')],
+#                 initial='',
+#                 disabled=True,
+#                 required=False
+#             )
 
-        self.fields['number_stocks'] = forms.FloatField(label="Number of stock", min_value=0)
-        self.fields['price_stocks'] = forms.FloatField(label="Price", min_value=0)
-        self.fields['date'] = forms.DateField(
-            label="Date",
-            widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
-            input_formats=["%Y-%m-%d"]
-        )
+#         self.fields['number_stocks'] = forms.FloatField(label="Number of stock", min_value=0)
+#         self.fields['price_stocks'] = forms.FloatField(label="Price", min_value=0)
+#         self.fields['date'] = forms.DateField(
+#             label="Date",
+#             widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+#             input_formats=["%Y-%m-%d"]
+#         )
 
 # class CSVUploadForm(forms.Form):
 #     csv_file = forms.FileField(

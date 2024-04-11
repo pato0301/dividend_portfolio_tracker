@@ -1,4 +1,5 @@
 from django import forms
+from .models import Portfolio
 
 # class BuyStockForm(forms.Form):
 #     ticker = forms.CharField(label="Stock ticker")
@@ -35,6 +36,39 @@ class BuyStockForm(forms.Form):
         ),
         input_formats=["%Y-%m-%d"]
     )
+
+class SellStockForm(forms.Form):
+
+    def __init__(self, user, *args, **kwargs):
+        super(SellStockForm, self).__init__(*args, **kwargs)
+        # Filter tickers based on user's portfolio
+        portfolio_entries = Portfolio.objects.filter(user_id=user)
+        
+        if portfolio_entries.exists():
+            ticker_choices = [(entry.ticker, entry.ticker) for entry in portfolio_entries]
+            self.fields['ticker'] = forms.ChoiceField(
+                label="Stock ticker",
+                choices=ticker_choices,
+                # initial='',
+                # disabled=True,
+                # required=False
+            )
+        else:
+            self.fields['ticker'] = forms.ChoiceField(
+                label="Stock ticker",
+                choices=[('', '---')],
+                initial='',
+                disabled=True,
+                required=False
+            )
+
+        self.fields['number_stocks'] = forms.FloatField(label="Number of stock", min_value=0)
+        self.fields['price_stocks'] = forms.FloatField(label="Price", min_value=0)
+        self.fields['date'] = forms.DateField(
+            label="Date",
+            widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            input_formats=["%Y-%m-%d"]
+        )
 
 class CSVUploadForm(forms.Form):
     csv_file = forms.FileField(
