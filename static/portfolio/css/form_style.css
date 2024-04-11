@@ -1,0 +1,137 @@
+/* .form-container {
+    width: 70vw;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+} */
+
+
+/* Style for the form container */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh;  */
+    /* Full viewport height */
+    height: fit-content; /* Full viewport height */
+    width: 80vw; /* Maximum width of 80vw */
+    max-width: 500px; /* Maximum width in pixels */
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    margin: 20px auto;
+}
+
+/* Style for the form */
+.my-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 90%; /* Maximum width of 80vw */
+    max-width: 500px; /* Maximum width in pixels */
+    padding: 20px;
+    /* border-radius: 15px; */
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+    /* background-color: #ffffff; */
+}
+
+.fieldWrapper {
+    display: flex;
+    align-items: center;
+    align-self: baseline;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.fieldWrapper label {
+    margin-right: 20px;
+}
+
+/* 
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #f44336;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: #e53935;
+} */
+
+input[type="submit"] {
+    width: auto; /* Adjusted to auto so it only takes the necessary width */
+    margin: 20px auto; /* Center the button horizontally and add some margin for spacing */
+    padding: 10px 15px;
+    background-color: #054993;
+    color: #f9f7f7;
+    border: 1px solid #054993;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    font-size: 16px;
+    font-weight: 400;
+    /* text-transform: uppercase; */
+    display: block; /* Ensures the button takes full width of its container */
+}
+
+/* Hover effect for the button */
+input[type="submit"]:hover {
+    background-color: #0a3f76;
+    border-color: #0a3f76;
+    transform: scale(1.05);
+}
+
+.uploadCsvButton {
+    width: auto; /* Adjusted to auto so it only takes the necessary width */
+    margin: 0 auto; /* Center the button horizontally and add some margin for spacing */
+    padding: 10px 15px;
+    background-color: #054993;
+    border: 1px solid #054993;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.uploadCsvButton a {
+    color: #f9f7f7;
+    text-decoration: none; /* Removes underline */
+}
+
+/* Hover effect for the button */
+.uploadCsvButton:hover {
+    background-color: #0a3f76;
+    border-color: #0a3f76;
+    transform: scale(1.05);
+}
