@@ -351,6 +351,7 @@ def load_dividen_log(request):
     #     result.append(ticker_dividends)
 
     result = []
+    lowest_date_with_value = None
     for date in date_list:
         # ticker_dividends = [date]
         ticker_dividends = {}
@@ -362,6 +363,8 @@ def load_dividen_log(request):
                 # print("dividend.amount: ", dividend.amount)
                 ticker_dividends[date][dividend.ticker] = dividend.amount
                 # ticker_dividends.append(dividend.amount)
+                if dividend.amount > 0 and (lowest_date_with_value is None or date < lowest_date_with_value):
+                    lowest_date_with_value = date
             else:
                 if dividend.ticker not in ticker_dividends[date].keys():
                     ticker_dividends[date][dividend.ticker] = 0
@@ -387,7 +390,8 @@ def load_dividen_log(request):
 
     return render(request, "portfolio/dividend.html", {
         "stocks" : unique_stock_paid,
-        "date_ticket_list" : result
+        "date_ticket_list" : result,
+        "start_display_date" : lowest_date_with_value
     })
 
 async def upload_csv(request):
