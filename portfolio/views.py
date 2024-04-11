@@ -11,20 +11,22 @@ from asgiref.sync import sync_to_async
 from django.db.models import Q
 from .cron_jobs.process_dividend_payments import process_dividend_payments
 
+from .forms import BuyStockForm
+
 import yfinance as yf
 import csv
 from datetime import datetime
 import time
 
-class BuyStockForm(forms.Form):
-    ticker = forms.CharField(label="Stock ticker")
-    number_stocks = forms.FloatField(label="Number of stock", min_value=0, step_size=0.00001)
-    price_stocks = forms.FloatField(label="Price", min_value=0, step_size=0.01)
-    date = forms.DateField(
-        label="Date",
-        widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
-        input_formats=["%Y-%m-%d"]
-    )
+# class BuyStockForm(forms.Form):
+#     ticker = forms.CharField(label="Stock ticker")
+#     number_stocks = forms.FloatField(label="Number of stock", min_value=0, step_size=0.00001)
+#     price_stocks = forms.FloatField(label="Price", min_value=0, step_size=0.01)
+#     date = forms.DateField(
+#         label="Date",
+#         widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+#         input_formats=["%Y-%m-%d"]
+#     )
 
 
 class SellStockForm(forms.Form):

@@ -1,4 +1,8 @@
 /* Custom styles for the navbar */
+.header {
+    border-bottom: 1px solid #E2E8F0;
+}
+
 .navbar {
     height: 50px;
     display: flex;
@@ -13,6 +17,16 @@
 .mobile-menu-button {
     display: none; /* Hide the mobile menu button by default */
 
+}
+
+.mobile-menu-bar {
+    display: block;
+    width: 25px;
+    height: 3px;
+    margin: 5px auto;
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    background-color: #101010;
 }
 
 .navbar-toggler {
@@ -30,6 +44,8 @@
     text-align: center; /* Center the text */
     opacity: 0; /* Initially hide the navbar links */
     transition: all 0.3s; /* Smooth transition for showing/hiding */
+    margin: 0 10px;
+    padding: 0;
     /* margin-right: 0; */
      /* Removes default margin */
     /* display: flex;  */
@@ -69,7 +85,7 @@
 @media (min-width: 769px) {
     .navbar-nav {
         display: flex; /* Show the navbar links */
-        justify-content: flex-end; /* Align links to the right */
+        justify-content: space-evenly; /* Align links to the right */
         align-items: center; /* Center the items vertically */
         opacity: 1; /* Show the navbar links */
     }
@@ -103,6 +119,7 @@
 @media (max-width: 768px) {
     .mobile-menu-button {
         display: block; /* Show the mobile menu button */
+        cursor: pointer;
     }
 
     .navbar-nav {
@@ -126,4 +143,15 @@
         opacity: 1; /* Show the navbar links */
     }
 
+    .mobile-menu-button.active .mobile-menu-bar:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-button.active .mobile-menu-bar:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+
+    .mobile-menu-button.active .mobile-menu-bar:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
 }
