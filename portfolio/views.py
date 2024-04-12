@@ -112,7 +112,6 @@ async def save_buy_stock(request):
     else:
         if request.method == "POST":
             user = await sync_to_async(lambda: request.user)()
-            # print("user: ", user)
             form = BuyStockForm(request.POST)
             if form.is_valid():
                 ticker = form.cleaned_data["ticker"]
@@ -232,19 +231,16 @@ async def save_sell_stock(request):
     else:
         user = await sync_to_async(lambda: request.user)()
         if request.method == "POST":
-            # print("user: ", user)
-            form = BuyStockForm(request.POST)
+            form = await sync_to_async(lambda: SellStockForm(data=request.POST, user=user))()
             if form.is_valid():
                 ticker = form.cleaned_data["ticker"]
                 number_stocks = form.cleaned_data["number_stocks"]
                 price_stocks = form.cleaned_data["price_stocks"]
                 sell_date = form.cleaned_data["date"]
                 today = timezone.now().date()
-                # print(ticker, number_stocks, price_stocks, sell_date)
                 try:
                     # Get the Portfolio entry for the user and ticker, if it exists
                     portfolio_entry = await Portfolio.objects.filter(user_id=user, ticker=ticker).afirst()
-                    # print("got portfolio_entry")
                     if not portfolio_entry:
                         raise ValueError("Stock not in portfolio")
 
@@ -287,13 +283,15 @@ async def save_sell_stock(request):
                     return HttpResponseRedirect(reverse("portfolio:index"))
                 except Exception as e:
                     # Handle any errors, such as invalid ticker symbols
-                    form.add_error("ticker", str(e))
+                    # form.add_error("ticker", str(e))
                     messages.error(request, "Error: Stock not in portfolio.")
                     return render(request, "portfolio/sell_stock.html", {
+                        "message": str(e),
                         "form": form
                     })
             else:
                 return render(request, "portfolio/sell_stock.html", {
+                    "message": "Something went wrong",
                     "form": form
                 }) 
         else:
