@@ -24,3 +24,7 @@ class EditUserForm(forms.ModelForm):
         if not any(char.isupper() for char in password):
             raise forms.ValidationError("Password must contain at least one uppercase letter.")
         return password
+
+class SignInForm(forms.Form):
+    email = forms.EmailField(label="Email", max_length=254, help_text='Required. Enter a valid email address.')
+    password = forms.CharField(label="Password", min_length=8, max_length=25, widget=forms.PasswordInput)

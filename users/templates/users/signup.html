@@ -16,5 +16,10 @@
                 Already an user? Login
             </a>
         </form>
+        {% if message %}
+            <div class="formError">
+                {{ message }}
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
