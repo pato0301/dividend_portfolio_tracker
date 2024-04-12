@@ -17,6 +17,8 @@ import yfinance as yf
 import csv
 from datetime import datetime
 import time
+import pandas as pd
+import json
 
 # class BuyStockForm(forms.Form):
 #     ticker = forms.CharField(label="Stock ticker")
@@ -540,10 +542,48 @@ async def upload_csv(request):
             return redirect('portfolio:index') 
 
         else:
-            return render(request, 'upload_csv.html', {'form': form})
+            return render(request, 'portfolio/upload_csv.html', {'form': form})
 
 
+def portfolio_metrics(request):
+    # Query the database to get the sum of payment_date by month
+    payments = DividendPayment.objects.filter(user_id=request.user)
+    payments_df = pd.DataFrame(list(payments.values('payment_date', 'amount')))
+    
+    # Convert payment_date to datetime and extract month and year
+    payments_df['payment_date'] = pd.to_datetime(payments_df['payment_date'])
+    payments_df['month_year'] = payments_df['payment_date'].dt.to_period('M')
+    
+    # Group by month and sum the amounts
+    grouped_payments = payments_df.groupby('month_year')['amount'].sum().reset_index()
 
+    # Complete the missing months
+    min_month = grouped_payments['month_year'].min()
+    max_month = grouped_payments['month_year'].max()
+    all_months = pd.period_range(min_month, max_month, freq='M')
+    
+    grouped_payments.set_index('month_year', inplace=True)
+    grouped_payments = grouped_payments.reindex(all_months, fill_value=0).reset_index()
+    # Rename the columns
+    grouped_payments.rename(columns={'index': 'month_year'}, inplace=True)
+
+    # # Prepare data for Chart.js
+    # labels = grouped_payments['month_year'].astype(str)
+    # data = grouped_payments['amount']
+
+    # Prepare data for Chart.js
+    labels = grouped_payments['month_year'].astype(str).tolist()
+    data = grouped_payments['amount'].tolist()
+
+    labels_json = json.dumps(labels)
+    data_json = json.dumps(data)
+
+    print("data: ", data_json)
+    print("data: ", type(data))
+    print("labels: ", labels)
+    print("labels: ", type(labels))
+
+    return render(request, 'portfolio/portfolio_metrics.html', {'labels': labels_json, 'data': data_json})
 
 
 
