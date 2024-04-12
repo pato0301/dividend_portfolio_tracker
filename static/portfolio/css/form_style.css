@@ -170,3 +170,17 @@ input[type="submit"]:hover {
     border-color: #0a3f76;
     transform: scale(1.05);
 }
+
+.loginLinks {
+    color: black;
+}
+
+.edit-user {
+    list-style-type: none; /* Removes the dots */
+    margin-right: 15px; /* Adds some space between the items */
+}
+
+.formError {
+    color: #d61212;
+    font-weight: 600;
+}

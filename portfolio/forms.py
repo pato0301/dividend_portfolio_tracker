@@ -37,31 +37,13 @@ class BuyStockForm(forms.Form):
         input_formats=["%Y-%m-%d"]
     )
 
+
 class SellStockForm(forms.Form):
 
     def __init__(self, user, *args, **kwargs):
         super(SellStockForm, self).__init__(*args, **kwargs)
-        # Filter tickers based on user's portfolio
-        portfolio_entries = Portfolio.objects.filter(user_id=user)
         
-        if portfolio_entries.exists():
-            ticker_choices = [(entry.ticker, entry.ticker) for entry in portfolio_entries]
-            self.fields['ticker'] = forms.ChoiceField(
-                label="Stock ticker",
-                choices=ticker_choices,
-                # initial='',
-                # disabled=True,
-                # required=False
-            )
-        else:
-            self.fields['ticker'] = forms.ChoiceField(
-                label="Stock ticker",
-                choices=[('', '---')],
-                initial='',
-                disabled=True,
-                required=False
-            )
-
+        self.fields['ticker'] = forms.ChoiceField(label="Stock ticker", widget=forms.Select(choices=[]))
         self.fields['number_stocks'] = forms.FloatField(label="Number of stock", min_value=0)
         self.fields['price_stocks'] = forms.FloatField(label="Price", min_value=0)
         self.fields['date'] = forms.DateField(
@@ -69,6 +51,23 @@ class SellStockForm(forms.Form):
             widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
             input_formats=["%Y-%m-%d"]
         )
+
+        portfolio_entries = Portfolio.objects.filter(user_id=user)
+        
+        if portfolio_entries.exists():
+            ticker_choices = [(entry.ticker, entry.ticker) for entry in portfolio_entries]
+            self.fields['ticker'].choices = ticker_choices
+            
+            # Set initial value for ticker from POST data
+            if 'ticker' in self.data:
+                self.fields['ticker'].initial = self.data['ticker']
+
+        else:
+            self.fields['ticker'].choices = [('', '---')]
+            self.fields['ticker'].initial = ''
+            self.fields['ticker'].disabled = True
+            self.fields['ticker'].required = False
+
 
 class CSVUploadForm(forms.Form):
     csv_file = forms.FileField(

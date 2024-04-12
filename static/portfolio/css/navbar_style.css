@@ -47,6 +47,10 @@
     /* font-size: 1.6rem;
     font-weight: 400;
     color: #475569; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
 }
 
 .nav-menu .nav-item:hover {

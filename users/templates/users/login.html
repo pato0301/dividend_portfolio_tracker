@@ -2,16 +2,24 @@
 
 {% block body %}
     <h1>Login</h1>
-
-    {% if message %}
-        <div>{{ message }}</div>
-    {% endif %}
-
-    <form  action="{% url 'users:login' %}" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit">
-    </form>
-
-    <a href="{% url 'users:signup' %}">Not registered? Sign Up</a>
+    <div class="form-container">
+        <form  action="{% url 'users:login' %}" method="post" class="my-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="fieldWrapper">
+                    {{ field.errors }}
+                    {{ field.label_tag }} {{ field }}
+                </div>
+            {% endfor %}
+            <input type="submit" value="Log in">
+            <a href="{% url 'users:signup' %}" class="loginLinks">
+                Not registered? Sign Up
+            </a>
+        </form>
+        {% if message %}
+            <div class="formError">
+                {{ message }}
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}

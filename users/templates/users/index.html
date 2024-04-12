@@ -2,9 +2,30 @@
 
 {% block body %}
     <h1>Index</h1>
-    <ul>
+    <div class="form-container">
+        <form  action="{% url 'portfolio:save_buy_stock' %}" method="post" class="my-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="fieldWrapper">
+                    {{ field.errors }}
+                    {{ field.label_tag }} {{ field }}
+                </div>
+            {% endfor %}
+            <input type="submit" value="Update user">
+        </form>
+        <!-- <button class="uploadCsvButton">
+            <a href="{% url 'portfolio:upload_csv_history' %}">Upload History with CSV</a>
+        </button> -->
+    </div>
+    <!-- <div class="form-container">
+        <ul class="edit-user">
+            <li>Username: {{ request.user.username }}</li>
+            <li>Email: {{ request.user.email }}</li>
+        </ul>
+    </div> -->
+    <!-- <ul>
         <li>Username: {{ request.user.username }}</li>
         <li>Email: {{ request.user.email }}</li>
-    </ul>
+    </ul> -->
     <a href="{% url 'users:logout' %}">Log out</a>
 {% endblock %}
