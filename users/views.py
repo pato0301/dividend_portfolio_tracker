@@ -5,6 +5,9 @@ from django import forms
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+
+from .forms import EditUserForm
 
 class SignInForm(forms.Form):
     email = forms.EmailField(label="Email")
@@ -12,11 +15,22 @@ class SignInForm(forms.Form):
 
 
 # Create your views here.
+@login_required
 def index(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("users:login"))
     else:
-        return HttpResponseRedirect(reverse("portfolio:index"))
+        user = request.user
+        if request.method == 'POST':
+            form = EditUserForm(request.POST, instance=user)
+            if form.is_valid():
+                form.save()
+                return redirect('home')  # Replace 'home' with the name of your homepage URL pattern
+        else:
+            form = EditUserForm(instance=user)
+        return render(request, 'users/index.html', {'form': form})
+        # return render(request, "users/index.html")
+        # return HttpResponseRedirect(reverse("users:index"))
 
 def login_view(request):
     if request.user.is_authenticated:

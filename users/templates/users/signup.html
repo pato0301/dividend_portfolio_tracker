@@ -2,10 +2,19 @@
 
 {% block body %}
     <h1>Signup</h1>
-    <form  action="{% url 'users:signup' %}" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit">
-    </form>
-    <a href="{% url 'users:login' %}">Already an user? Login</a>
+    <div class="form-container">
+        <form  action="{% url 'users:signup' %}" method="post" class="my-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="fieldWrapper">
+                    {{ field.errors }}
+                    {{ field.label_tag }} {{ field }}
+                </div>
+            {% endfor %}
+            <input type="submit" value="Sign up">
+            <a href="{% url 'users:login' %}" class="loginLinks">
+                Already an user? Login
+            </a>
+        </form>
+    </div>
 {% endblock %}
