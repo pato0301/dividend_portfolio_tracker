@@ -4,10 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="{% static 'portfolio/css/style.css' %}">
     <link rel="stylesheet" href="{% static 'portfolio/css/table_style.css' %}">
     <link rel="stylesheet" href="{% static 'portfolio/css/form_style.css' %}">
     <link rel="stylesheet" href="{% static 'portfolio/css/navbar_style.css' %}">
+    <link rel="stylesheet" href="{% static 'portfolio/css/chart_style.css' %}">
     <title>Portfolio</title>
 </head>
 <body>
@@ -35,7 +37,7 @@
                         <a class="nav-link" href="{% url 'portfolio:view_dividends' %}">View Dividends</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'portfolio:view_dividends' %}">View Metrics</a>
+                        <a class="nav-link" href="{% url 'portfolio:portfolio_metrics' %}">View Metrics</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'users:logout' %}">Logout</a>
