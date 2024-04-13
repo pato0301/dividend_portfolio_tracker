@@ -3,32 +3,114 @@
 {% block body %}
     <h1>Portfolio Metrics</h1>
 
-    <canvas id="dividendChart"></canvas>
-
-    <script type="text/javascript">
-        var ctx = document.getElementById('dividendChart').getContext('2d');
-        var labels = JSON.parse('{{ labels|safe }}');
-        var data = JSON.parse('{{ data|safe }}');
-
-        var chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Total Dividend Payment',
-                    data: data,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+    <div class="metricsAllContainer" style="display: flex; justify-content: space-between;">
+        <!-- Monthly Dividend Income Chart -->
+        <div class="chartContainer">
+            <canvas id="monthlyDividendChart"></canvas>
+    
+            <script type="text/javascript">
+                var ctxMonthly = document.getElementById('monthlyDividendChart').getContext('2d');
+                var labelsMonthly = JSON.parse('{{ labels_monthly|safe }}');
+                var dataMonthly = JSON.parse('{{ data_monthly|safe }}');
+                // var dataMonthly = JSON.parse('{{ data_monthly|safe }}');
+    
+                var chartMonthly = new Chart(ctxMonthly, {
+                    type: 'bar',
+                    data: {
+                        labels: labelsMonthly,
+                        datasets: [{
+                            label: 'Monthly Dividend Income',
+                            data: dataMonthly,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
                     }
+                });
+            </script>
+        </div>
+    
+        <!-- Yearly Dividend Income Chart -->
+        <div class="chartContainer">
+            <canvas id="yearlyDividendChart"></canvas>
+    
+            <script type="text/javascript">
+                var ctxYearly = document.getElementById('yearlyDividendChart').getContext('2d');
+                var labelsYearly = JSON.parse('{{ labels_yearly|safe }}');
+                var dataYearly = JSON.parse('{{ data_yearly|safe }}');
+    
+                var chartYearly = new Chart(ctxYearly, {
+                    type: 'bar',
+                    data: {
+                        labels: labelsYearly,
+                        datasets: [{
+                            label: 'Yearly Dividend Income',
+                            data: dataYearly,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            </script>
+        </div>
+
+        <!-- Yearly Dividend Income by Sector Chart -->
+        <div class="chartContainer">
+            <canvas id="sectorDividendChart"></canvas>
+
+            <script>
+                var ctxSector = document.getElementById('sectorDividendChart').getContext('2d');
+                var labelsSector = JSON.parse('{{ labels_by_sector|safe }}');
+                var dataSector = JSON.parse('{{ data_by_sector|safe }}');
+
+                var datasets = [];
+                for (var sector in dataSector) {
+                    datasets.push({
+                        label: sector,
+                        data: dataSector[sector],
+                        backgroundColor: 'rgba(' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ', 0.2)',
+                        borderColor: 'rgba(' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ', 1)',
+                        borderWidth: 1
+                    });
                 }
-            }
-        });
-    </script>
+
+                var chartSector = new Chart(ctxSector, {
+                    type: 'bar',
+                    data: {
+                        labels: labelsSector,
+                        datasets: datasets
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Yearly Dividends by Sector'
+                            }
+                        }
+                    }
+                });
+            </script>
+        </div>
+    </div>
+
 {% endblock %}

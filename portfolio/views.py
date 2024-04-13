@@ -12,6 +12,7 @@ from django.db.models import Q
 from .cron_jobs.process_dividend_payments import process_dividend_payments
 
 from .forms import BuyStockForm, CSVUploadForm, SellStockForm
+from .utils import get_sector
 
 import yfinance as yf
 import csv
@@ -548,42 +549,89 @@ async def upload_csv(request):
 def portfolio_metrics(request):
     # Query the database to get the sum of payment_date by month
     payments = DividendPayment.objects.filter(user_id=request.user)
-    payments_df = pd.DataFrame(list(payments.values('payment_date', 'amount')))
+    payments_df = pd.DataFrame(list(payments.values('payment_date', 'amount', 'ticker')))
     
     # Convert payment_date to datetime and extract month and year
     payments_df['payment_date'] = pd.to_datetime(payments_df['payment_date'])
     payments_df['month_year'] = payments_df['payment_date'].dt.to_period('M')
+    payments_df['year'] = payments_df['payment_date'].dt.year
+
+    # Get sector for each ticker
+    payments_df['sector'] = payments_df['ticker'].apply(get_sector)
     
-    # Group by month and sum the amounts
-    grouped_payments = payments_df.groupby('month_year')['amount'].sum().reset_index()
+    # Group by month, year, and sector to sum the amounts
+    grouped_payments_monthly = payments_df.groupby(['month_year'])['amount'].sum().reset_index()
+    grouped_payments_sector_yearly = payments_df.groupby(['year', 'sector'])['amount'].sum().reset_index()
+    grouped_payments_yearly = payments_df.groupby(['year'])['amount'].sum().reset_index()
+
+    # # Group by month and sum the amounts
+    # grouped_payments_monthly = payments_df.groupby('month_year')['amount'].sum().reset_index()
+    # grouped_payments_yearly = payments_df.groupby('year')['amount'].sum().reset_index()
 
     # Complete the missing months
-    min_month = grouped_payments['month_year'].min()
-    max_month = grouped_payments['month_year'].max()
+    min_month = grouped_payments_monthly['month_year'].min()
+    max_month = grouped_payments_monthly['month_year'].max()
     all_months = pd.period_range(min_month, max_month, freq='M')
     
-    grouped_payments.set_index('month_year', inplace=True)
-    grouped_payments = grouped_payments.reindex(all_months, fill_value=0).reset_index()
+    grouped_payments_monthly.set_index('month_year', inplace=True)
+    # grouped_payments_monthly.set_index(['month_year', 'sector'], inplace=True)
+    # grouped_payments_monthly = grouped_payments_monthly.reindex(pd.MultiIndex.from_product([all_months, grouped_payments_monthly.index.levels[1]], names=['month_year', 'sector']), fill_value=0).reset_index()
+    grouped_payments_monthly = grouped_payments_monthly.reindex(all_months, fill_value=0).reset_index()
     # Rename the columns
-    grouped_payments.rename(columns={'index': 'month_year'}, inplace=True)
+    grouped_payments_monthly.rename(columns={'index': 'month_year'}, inplace=True)
 
-    # # Prepare data for Chart.js
-    # labels = grouped_payments['month_year'].astype(str)
-    # data = grouped_payments['amount']
+    # Complete the missing years for yearly data
+    min_year = grouped_payments_yearly['year'].min()
+    max_year = grouped_payments_yearly['year'].max()
+    all_years = range(min_year, max_year + 1)
+
+    grouped_payments_yearly.set_index('year', inplace=True)
+    # grouped_payments_yearly.set_index(['year', 'sector'], inplace=True)
+    # grouped_payments_yearly = grouped_payments_yearly.reindex(pd.MultiIndex.from_product([all_years, grouped_payments_yearly.index.levels[1]], names=['year', 'sector']), fill_value=0).reset_index()
+    grouped_payments_yearly = grouped_payments_yearly.reindex(all_years, fill_value=0).reset_index()
+    # Rename the columns
+    grouped_payments_yearly.rename(columns={'index': 'year'}, inplace=True)
+
+    # Complete the missing years for yearly data
+    min_year_by_sector = grouped_payments_sector_yearly['year'].min()
+    max_year_by_sector = grouped_payments_sector_yearly['year'].max()
+    all_years = range(min_year_by_sector, max_year_by_sector + 1)
+
+    # grouped_payments_yearly.set_index('year', inplace=True)
+    grouped_payments_sector_yearly.set_index(['year', 'sector'], inplace=True)
+    grouped_payments_sector_yearly = grouped_payments_sector_yearly.reindex(pd.MultiIndex.from_product([all_years, grouped_payments_sector_yearly.index.levels[1]], names=['year', 'sector']), fill_value=0).reset_index()
+    # grouped_payments_yearly = grouped_payments_yearly.reindex(all_years, fill_value=0).reset_index()
+    # Rename the columns
+    grouped_payments_sector_yearly.rename(columns={'index': 'year'}, inplace=True)
 
     # Prepare data for Chart.js
-    labels = grouped_payments['month_year'].astype(str).tolist()
-    data = grouped_payments['amount'].tolist()
+    labels_monthly = grouped_payments_monthly['month_year'].astype(str).tolist()
+    data_monthly = grouped_payments_monthly['amount'].tolist()
 
-    labels_json = json.dumps(labels)
-    data_json = json.dumps(data)
+    labels_yearly = grouped_payments_yearly['year'].astype(str).tolist()
+    data_yearly = grouped_payments_yearly['amount'].tolist()
 
-    print("data: ", data_json)
-    print("data: ", type(data))
-    print("labels: ", labels)
-    print("labels: ", type(labels))
+    sectors = grouped_payments_sector_yearly['sector'].unique().tolist()
+    data_by_sector = {}
+    for sector in sectors:
+        data_by_sector[sector] = {}
+        for year in range(max_year_by_sector, max(max_year_by_sector - 5, min_year_by_sector - 1), -1):
+            amount = grouped_payments_sector_yearly[(grouped_payments_sector_yearly['sector'] == sector) & (grouped_payments_sector_yearly['year'] == year)]['amount'].sum()
+            data_by_sector[sector][year] = amount.tolist() if amount else 0
 
-    return render(request, 'portfolio/portfolio_metrics.html', {'labels': labels_json, 'data': data_json})
+    data_monthly_json = json.dumps(data_monthly)
+    labels_monthly_json = json.dumps(labels_monthly)
+    data_yearly_json = json.dumps(data_yearly)
+    labels_yearly_json = json.dumps(labels_yearly)
+    data_by_sector_json = json.dumps(data_by_sector)
+    # labels_by_sector_json = json.dumps(sectors)
+    labels_by_sector_json = json.dumps([str(year) for year in range(max_year_by_sector, max(max_year_by_sector - 5, min_year_by_sector - 1), -1)])
+
+    return render(request, 'portfolio/portfolio_metrics.html', {
+        'labels_monthly': labels_monthly_json, 'data_monthly': data_monthly_json,
+        'labels_yearly': labels_yearly_json, 'data_yearly': data_yearly_json,
+        'labels_by_sector': labels_by_sector_json, 'data_by_sector': data_by_sector_json
+    })
 
 
 
