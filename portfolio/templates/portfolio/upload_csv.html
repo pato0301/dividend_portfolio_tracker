@@ -3,6 +3,14 @@
 {% block body %}
     <h1>Upload CSV</h1>
     <div class="form-container">
+        <div>
+            <h4>CSV format:</h4>
+            <p>The CSV need to have a header with the following columns:</p>
+            <p>ticker,number_stocks,price,date,type_of_action</p>
+            <p><b>number_stocks</b> and <b>price</b> can be decimals and if so they need to be separated by a dot eg.: 1.1</p>
+            <p><b>date</b> need to be in the format of <i>dd/mm/yyyy</i> </p>
+            <p><b>type_of_action</b> can be <b>BUY</b> or <b>SELL</b> in uppercase</p>
+        </div>
         <form  action="{% url 'portfolio:upload_csv_history' %}" method="post" enctype="multipart/form-data" class="my-form">
             {% csrf_token %}
             <!-- {{ form }} -->
