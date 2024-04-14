@@ -20,6 +20,7 @@ from datetime import datetime
 import time
 import pandas as pd
 import json
+import io
 
 
 # Create your views here.
@@ -91,6 +92,9 @@ async def save_buy_stock(request):
                     else:
                         next_exdiv_payment = None
                     # next_exdiv_payment = datetime.fromtimestamp(exDividendDate)
+
+                    if industry == None:
+                        industry = stock_data.info.get('quoteType', 'Unknown')
 
                     # print(industry, next_exdiv_payment)
                     new_stock = await Transaction.objects.acreate(
@@ -410,6 +414,9 @@ async def upload_csv(request):
                         else:
                             next_exdiv_payment = None
                         # next_exdiv_payment = datetime.fromtimestamp(exDividendDate).date()
+
+                        if industry == None:
+                            industry = stock_data.info.get('quoteType', 'Unknown')
 
                         new_stock = await Transaction.objects.acreate(
                             operation="buy",
